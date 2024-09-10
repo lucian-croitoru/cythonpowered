@@ -60,8 +60,7 @@ for f in cython_file_list:
 
 
 # Set build_ext --inplace argument explicitly
-sys.argv = sys.argv[:1] + ["build_ext", "--inplace"]
-
+sys.argv = sys.argv + ["build_ext", "--inplace"]
 
 setup(
     name=NAME,
