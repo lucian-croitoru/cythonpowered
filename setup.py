@@ -11,8 +11,15 @@ DESCRIPTION = "Cython-powered replacements for popular Python functions. And mor
 AUTHOR = "Lucian Croitoru"
 AUTHOR_EMAIL = "lucianalexandru.croitoru@gmail.com"
 URL = "https://github.com/lucian-croitoru/cythonpowered"
-MODULES = ["random"]
 
+MODULES = ["random"]
+KEYWORDS = ["python", "cython", "random", "performance"]
+CLASSIFIERS = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Operating System :: Unix",
+]
 
 # Get long_description from README
 with open("README.md", "r") as f:
@@ -66,6 +73,8 @@ setup(
     author_email=AUTHOR_EMAIL,
     url=URL,
     packages=[NAME],
+    keywords=KEYWORDS,
+    classifiers=CLASSIFIERS,
     install_requires=["Cython>=3.0.0"],
     scripts=[],
     ext_modules=cythonize(module_list=cython_module_list, language_level="3"),
