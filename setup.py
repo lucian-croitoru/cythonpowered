@@ -5,7 +5,7 @@ import sys
 
 
 NAME = "cythonpowered"
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 LICENSE = "GNU GPLv3"
 DESCRIPTION = "Cython-powered replacements for popular Python functions. And more."
 AUTHOR = "Lucian Croitoru"
@@ -36,7 +36,7 @@ cython_file_list = [
     }
     for module in MODULES
 ]
-# include_dirs=f["include_dirs"],
+
 
 # Build Cython extensions
 cython_module_list = []
@@ -68,7 +68,7 @@ setup(
     packages=[NAME, f"{NAME}.random"],
     keywords=KEYWORDS,
     classifiers=CLASSIFIERS,
-    setup_requires=["Cython>=3.0.0"],
+    setup_requires=["Cython>=3.0.0", "setuptools>=74.0.0"],
     install_requires=[],
     scripts=[],
     ext_modules=cythonize(module_list=cython_module_list, language_level="3"),
