@@ -5,7 +5,7 @@ import sys
 
 
 NAME = "cythonpowered"
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 LICENSE = "GNU GPLv3"
 DESCRIPTION = "Cython-powered replacements for popular Python functions. And more."
 AUTHOR = "Lucian Croitoru"
@@ -27,35 +27,29 @@ with open("README.md", "r") as f:
 
 
 # Get Cython module information
-cython_file_list = []
-cython_module_list = []
-
-for module in MODULES:
-    module_dir = os.path.join(os.getcwd(), NAME, module)
-    cython_file_list += [
-        {
-            "module_name": f"{NAME}.{module}.{module}",
-            "module_source": os.path.join(module_dir, f),
-        }
-        for f in os.listdir(module_dir)
-        if f.endswith(".pyx")
-    ]
-
+cython_file_list = [
+    {
+        "module_name": f"{NAME}.{module}.{module}",
+        "module_source": [
+            os.path.join(NAME, module, "*.pyx"),
+        ],
+    }
+    for module in MODULES
+]
+# include_dirs=f["include_dirs"],
 
 # Build Cython extensions
-for f in cython_file_list:
-    module_name = f["module_name"]
-    module_source = f["module_source"]
+cython_module_list = []
 
+for f in cython_file_list:
     extension = Extension(
-        name=module_name,
-        sources=[module_source],
+        name=f["module_name"],
+        sources=f["module_source"],
         language="c",
         extra_compile_args=["-fopenmp"],
         extra_link_args=["-fopenmp"],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
     )
-
     cython_module_list.append(extension)
 
 
@@ -71,10 +65,13 @@ setup(
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
     url=URL,
-    packages=[NAME],
+    packages=[NAME, f"{NAME}.random"],
     keywords=KEYWORDS,
     classifiers=CLASSIFIERS,
-    install_requires=["Cython>=3.0.0"],
+    setup_requires=["Cython>=3.0.0"],
+    install_requires=[],
     scripts=[],
     ext_modules=cythonize(module_list=cython_module_list, language_level="3"),
+    package_data={"": ["*.pyx"]},
+    include_package_data=True,
 )
