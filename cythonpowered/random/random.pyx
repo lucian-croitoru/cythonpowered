@@ -58,11 +58,11 @@ cpdef choice(list population):
     return population[rand() % size]
 
 
-cpdef list choices(list population, unsigned int n):
+cpdef list choices(list population, unsigned int k=1):
     # Given a list, returns a selection (list) of n random elements
     # Replacement for random.choices()
     cdef unsigned int i
     cdef unsigned int size = len(population)
     srand(clock())
-    return [population[rand() % size] for i in range(n)]
+    return [population[rand() % size] for i in range(k)]
 # -----------------------------------------------------------------------------
