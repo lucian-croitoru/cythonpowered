@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Benchmark",
+            "type": "debugpy",
+            "program": "benchmark/main.py",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "args": [
+            ],
+            "justMyCode": true
+        }
+    ]
+}
