@@ -2,8 +2,8 @@ from cpuinfo import get_cpu_info
 import platform
 import psutil
 
+from scripts.benchmark._random import RandomBenchmark
 from cythonpowered import VERSION
-from benchmark._random import RandomBenchmark
 
 
 TITLE = f"""
@@ -81,11 +81,3 @@ class BenchmarkRunner:
         for benchmark in self.BENCHMARKS:
             self._log("")
             benchmark()
-
-
-def main():
-    BenchmarkRunner()
-
-
-if __name__ == "__main__":
-    main()

@@ -11,8 +11,6 @@ source $PWD/.venv/bin/activate	# activate .venv
 
 # set environment variables for first use
 export PYTHONPATH=$PWD:$PYTHONPATH
-export PYTHONPATH=$PWD/tests:$PYTHONPATH
-export PYTHONPATH=$PWD/benchmark:$PYTHONPATH
 
 # append PYTHONPATH to the "activate" script - for persistent use
 echo -e "export PYTHONPATH="$PYTHONPATH >> $PWD/.venv/bin/activate
@@ -21,4 +19,7 @@ echo -e "export PYTHONPATH="$PYTHONPATH >> $PWD/.venv/bin/activate
 pip3 install -r requirements.txt
 
 # build
+rm -rf $PWD/build
+rm -rf $PWD/dist
+rm -rf $PWD/cythonpowered.egg-info
 python3 setup.py build

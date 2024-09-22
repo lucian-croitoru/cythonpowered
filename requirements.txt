@@ -4,3 +4,4 @@ py-cpuinfo>=9.0.0
 pytest>=8.0.0
 setuptools>=74.0.0
 twine>=5.0.0
+wheel>=0.40.0
