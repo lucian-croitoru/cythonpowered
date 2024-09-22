@@ -1,4 +1,4 @@
-from benchmark._base import (
+from scripts.benchmark._base import (
     BaseFunctionDefinition,
     BaseBenchmarkDefinition,
     BaseBenchmark,
