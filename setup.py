@@ -21,7 +21,7 @@ CLASSIFIERS = [
 ]
 SETUP_REQUIRES = ["Cython>=3.0.0", "setuptools>=74.0.0"]
 INSTALL_REQUIRES = ["psutil>=6.0.0", "py-cpuinfo>=9.0.0"]
-PYTHON_MODULES = [NAME, "scripts"]
+PYTHON_MODULES = [NAME, "scripts", "scripts.benchmark"]
 
 install_cython = subprocess.Popen(["pip", "install"] + SETUP_REQUIRES)
 install_cython.wait()

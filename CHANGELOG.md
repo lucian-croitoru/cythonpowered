@@ -1,5 +1,8 @@
 # CHANGELOG
 
+### 0.1.5 - 2024-09-23
+- Bugfix in setup
+
 ### 0.1.4 - 2024-09-23
 - Added the `cythonpowered` CLI script as an entrypoint for all utils and scripts
 - Deprecated the `cythonpowered-benchmark` script
