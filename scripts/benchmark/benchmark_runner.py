@@ -1,6 +1,7 @@
 from cpuinfo import get_cpu_info
 import platform
 import psutil
+from typing import Optional
 
 from scripts.benchmark._random import RandomBenchmark
 from cythonpowered import VERSION
@@ -19,22 +20,20 @@ TITLE = f"""
 
 class BenchmarkRunner:
 
-    BENCHMARKS = [RandomBenchmark]
-    LOG = []
+    MODULE_BENCHMARKS = [RandomBenchmark]
 
     def __init__(self) -> None:
-        sys_info = self._get_system_info()
-        sys_info_pretty = self._prettify_dict(sys_info)
-        self._log(TITLE)
+        sys_info = self.get_system_info()
+        sys_info_pretty = self.prettify_dict(sys_info)
+        self.log(TITLE)
         for line in sys_info_pretty:
-            self._log(line)
-        self.run_benchmarks()
+            self.log(line)
+        self.run_module_benchmarks()
 
-    def _log(self, msg) -> None:
-        self.LOG.append(msg)
-        print(msg)
+    def log(self, msg, end: Optional[str] = None) -> None:
+        print(msg, end=end, flush=True)
 
-    def _get_system_info(self) -> dict:
+    def get_system_info(self) -> dict:
 
         # OS info
         os_name = platform.system()
@@ -70,14 +69,14 @@ class BenchmarkRunner:
 
         return sysinfo
 
-    def _prettify_dict(self, input_dict: dict) -> list:
+    def prettify_dict(self, input_dict: dict) -> list:
         spaces = 4
         keys = [k for k in input_dict.keys()]
         max_len = max([len(k) for k in keys])
         prettified = [f"{k}:{' '*(max_len-len(k)+spaces)}{input_dict[k]}" for k in keys]
         return prettified
 
-    def run_benchmarks(self):
-        for benchmark in self.BENCHMARKS:
-            self._log("")
-            benchmark()
+    def run_module_benchmarks(self):
+        for module_benchmark in self.MODULE_BENCHMARKS:
+            self.log("")
+            module_benchmark()

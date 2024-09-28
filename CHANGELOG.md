@@ -1,5 +1,8 @@
 # CHANGELOG
 
+### 0.1.6 - 2024-09-28
+- Used `prettytable` for benchmark output (`cythonpowered --benchmark`) 
+
 ### 0.1.5 - 2024-09-23
 - Bugfix in setup
 
