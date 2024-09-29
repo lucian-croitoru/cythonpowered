@@ -19,8 +19,16 @@ CLASSIFIERS = [
     "Programming Language :: Python :: 3",
     "Operating System :: Unix",
 ]
-SETUP_REQUIRES = ["Cython>=3.0.0", "setuptools>=74.0.0"]
-INSTALL_REQUIRES = ["psutil>=6.0.0", "py-cpuinfo>=9.0.0"]
+SETUP_REQUIRES = [
+    "Cython>=3.0.0",
+    "setuptools==74.1.3",
+    "wheel==0.43.0",
+    "packaging==24.0",
+    "more-itertools==10.0.0",
+    "jaraco.functools>=4.0.0",
+    "jaraco.text>=4.0.0",
+]
+INSTALL_REQUIRES = ["psutil>=6.0.0", "py-cpuinfo>=9.0.0", "prettytable>=3.0.0"]
 PYTHON_MODULES = [NAME, "scripts", "scripts.benchmark"]
 
 install_cython = subprocess.Popen(["pip", "install"] + SETUP_REQUIRES)
@@ -59,8 +67,9 @@ for f in cython_file_list:
         name=f["module_name"],
         sources=f["module_source"],
         language="c",
-        extra_compile_args=["-fopenmp"],
-        extra_link_args=["-fopenmp"],
+        # TODO: re-enable -fopenmp, handle arm64 arch
+        # extra_compile_args=["-fopenmp"],
+        # extra_link_args=["-fopenmp"],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
     )
     cython_module_list.append(extension)
