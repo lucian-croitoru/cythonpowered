@@ -42,8 +42,10 @@ class BenchmarkRunner:
 
         # CPU info
         cpu = get_cpu_info()
-        cpu_name = cpu["brand_raw"]
-        cpu_freq = cpu["hz_advertised_friendly"]
+        cpu_name = cpu.get("brand_raw", "Unsupported parameter for this system")
+        cpu_freq = cpu.get(
+            "hz_advertised_friendly", "Unsupported parameter for this system"
+        )
         cpu_cores = psutil.cpu_count(logical=False)
         cpu_threads = psutil.cpu_count(logical=True)
         arch = platform.machine()
