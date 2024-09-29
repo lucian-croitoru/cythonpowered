@@ -1,5 +1,16 @@
 # CHANGELOG
 
+
+### 0.1.9 - 2024-09-29
+- Bugfix in retrieveing system information for benchmark
+
+### 0.1.8 - 2024-09-29
+- Bugfix in setup
+- Temporarily disabled `-fopenmp` parameter until making more thorough troubleshooting for `arm46` arch
+
+### 0.1.7 - 2024-09-28
+- Pinned versions of `setuptools` and `wheel`
+
 ### 0.1.6 - 2024-09-28
 - Used `prettytable` for benchmark output (`cythonpowered --benchmark`) 
 
