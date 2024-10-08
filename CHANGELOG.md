@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 0.1.10 - 2024-10-08
+- Added the `cythonpowered --list` command
+- Added initial documentation
+- Various internal tweaks
 
 ### 0.1.9 - 2024-09-29
 - Bugfix in retrieveing system information for benchmark
