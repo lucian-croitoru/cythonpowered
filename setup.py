@@ -1,8 +1,22 @@
 import os
+import platform
 from setuptools import Extension, setup
 import subprocess
 import sys
 from cythonpowered import VERSION, MODULES as CYTHON_MODULES
+
+
+class PythonVersionError(Exception):
+    pass
+
+
+python_version = [int(i) for i in platform.python_version_tuple()]
+py_ver = python_version[0]
+py_subver = python_version[1]
+if py_ver != 3:
+    raise PythonVersionError(f"Python 3 required. Installed version is {py_ver}")
+if py_subver not in range(8, 12):
+    raise PythonVersionError("Setup requires Python>=3.8,<3.12")
 
 
 NAME = "cythonpowered"
@@ -16,20 +30,29 @@ KEYWORDS = ["python", "cython", "random", "performance"]
 CLASSIFIERS = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
     "Operating System :: Unix",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 SETUP_REQUIRES = [
-    "Cython>=3.0.0",
     "setuptools==74.1.3",
     "wheel==0.43.0",
+    "Cython>=3.0.0",
     "packaging==24.0",
     "more-itertools==10.0.0",
     "jaraco.functools>=4.0.0",
     "jaraco.text>=4.0.0",
 ]
 INSTALL_REQUIRES = ["psutil>=6.0.0", "py-cpuinfo>=9.0.0", "prettytable>=3.0.0"]
-PYTHON_MODULES = [NAME, "scripts", "scripts.benchmark"]
+PYTHON_MODULES = [NAME, "utils", "utils.definitions", "utils.benchmark"]
 
 install_cython = subprocess.Popen(["pip", "install"] + SETUP_REQUIRES)
 install_cython.wait()
@@ -98,6 +121,6 @@ setup(
     package_data={"": ["*.pyx"]},
     include_package_data=True,
     entry_points={
-        "console_scripts": ["cythonpowered=scripts.main:main"],
+        "console_scripts": ["cythonpowered=utils.main:main"],
     },
 )
