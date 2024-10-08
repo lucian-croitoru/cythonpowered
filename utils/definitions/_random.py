@@ -1,9 +1,4 @@
-from utils.definitions._base import BaseFunctionDefinition
-from utils.benchmark._base import (
-    BaseFunctionBenchmark,
-    BaseModuleBenchmark,
-)
-
+from utils.definitions._base import BaseFunctionDefinition, REPLACEMENT
 import random as py_random
 import cythonpowered.random as cy_random
 
@@ -17,17 +12,13 @@ class PythonRandomRandomDef(BaseFunctionDefinition):
 class CythonRandomRandomDef(BaseFunctionDefinition):
     function = cy_random.random
     reference = "cythonpowered.random.random"
+    usage = REPLACEMENT
 
 
 class CythonRandomNRandomDef(BaseFunctionDefinition):
     function = cy_random.n_random
     reference = "cythonpowered.random.n_random"
-
-
-class RandomBenchmarkDefinition(BaseFunctionBenchmark):
-    python_function = PythonRandomRandomDef
-    cython_function = CythonRandomRandomDef
-    cython_n_function = CythonRandomNRandomDef
+    usage = "n_random(k) is equivalent to [random() for i in range(k)]"
 
 
 # =============================================================================
@@ -39,18 +30,13 @@ class PythonRandomRandintDef(BaseFunctionDefinition):
 class CythonRandomRandintDef(BaseFunctionDefinition):
     function = cy_random.randint
     reference = "cythonpowered.random.randint"
+    usage = REPLACEMENT
 
 
 class CythonRandomNRandintDef(BaseFunctionDefinition):
     function = cy_random.n_randint
     reference = "cythonpowered.random.n_randint"
-
-
-class RandintBenchmarkDefinition(BaseFunctionBenchmark):
-    python_function = PythonRandomRandintDef
-    cython_function = CythonRandomRandintDef
-    cython_n_function = CythonRandomNRandintDef
-    args = [-1000000, 1000000]
+    usage = "n_randint(a, b, k) is equivalent to [randint(a, b) for i in range(k)]"
 
 
 # =============================================================================
@@ -62,18 +48,13 @@ class PythonRandomUniformDef(BaseFunctionDefinition):
 class CythonRandomUniformDef(BaseFunctionDefinition):
     function = cy_random.uniform
     reference = "cythonpowered.random.uniform"
+    usage = REPLACEMENT
 
 
 class CythonRandomNUniformDef(BaseFunctionDefinition):
     function = cy_random.n_uniform
     reference = "cythonpowered.random.n_uniform"
-
-
-class UniformBenchmarkDefinition(BaseFunctionBenchmark):
-    python_function = PythonRandomUniformDef
-    cython_function = CythonRandomUniformDef
-    cython_n_function = CythonRandomNUniformDef
-    args = [-123456.789, 123456.789]
+    usage = "n_uniform(a, b, k) is equivalent to [uniform(a, b) for i in range(k)]"
 
 
 # =============================================================================
@@ -85,12 +66,7 @@ class PythonRandomChoiceDef(BaseFunctionDefinition):
 class CythonRandomChoiceDef(BaseFunctionDefinition):
     function = cy_random.choice
     reference = "cythonpowered.random.choice"
-
-
-class ChoiceBenchmarkDefinition(BaseFunctionBenchmark):
-    python_function = PythonRandomChoiceDef
-    cython_function = CythonRandomChoiceDef
-    args = [cy_random.n_randint(-100000, 100000, 10000)]
+    usage = REPLACEMENT
 
 
 # =============================================================================
@@ -102,23 +78,19 @@ class PythonRandomChoicesDef(BaseFunctionDefinition):
 class CythonRandomChoicesDef(BaseFunctionDefinition):
     function = cy_random.choices
     reference = "cythonpowered.random.choices"
-
-
-class ChoicesBenchmarkDefinition(BaseFunctionBenchmark):
-    python_function = PythonRandomChoicesDef
-    cython_function = CythonRandomChoicesDef
-    args = [cy_random.n_randint(-100000, 100000, 10000)]
-    kwargs = {"k": 100}
-    runs = [1000, 10000, 100000]
+    usage = "Drop-in replacement, only supports the 'k' keyword argument"
 
 
 # =============================================================================
-class RandomBenchmark(BaseModuleBenchmark):
-    MODULE = "random"
-    BENCHMARKS = [
-        RandomBenchmarkDefinition,
-        RandintBenchmarkDefinition,
-        UniformBenchmarkDefinition,
-        ChoiceBenchmarkDefinition,
-        ChoicesBenchmarkDefinition,
-    ]
+
+
+RANDOM_DEFINITION_PAIRS = [
+    [PythonRandomRandomDef, CythonRandomRandomDef],
+    [PythonRandomRandomDef, CythonRandomNRandomDef],
+    [PythonRandomRandintDef, CythonRandomRandintDef],
+    [PythonRandomRandintDef, CythonRandomNRandintDef],
+    [PythonRandomUniformDef, CythonRandomUniformDef],
+    [PythonRandomUniformDef, CythonRandomNUniformDef],
+    [PythonRandomChoiceDef, CythonRandomChoiceDef],
+    [PythonRandomChoicesDef, CythonRandomChoicesDef],
+]
