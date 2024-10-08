@@ -3,11 +3,10 @@ from time import time
 from prettytable import PrettyTable
 
 from cythonpowered import MODULES
+from utils import SEPARATOR
 from utils.definitions._base import BaseFunctionDefinition
 
 
-LINE_LENGTH = 80
-SEPARATOR = "=" * LINE_LENGTH
 DEFAULT_RUNS = [10000, 100000, 1000000]
 
 
@@ -41,7 +40,7 @@ class BaseFunctionBenchmark:
             " and [" + cython_n_func_ref + "]" if cython_n_func_ref is not None else ""
         )
         self.log(
-            f"Comparing [{self.cython_function.reference}]{cython_n_func_msg} with [{self.python_function.reference}]... {(progress/total*100):.2f}%",
+            f"Comparing [{self.python_function.reference}] with [{self.cython_function.reference}]{cython_n_func_msg}... {(progress/total*100):.2f}%",
             end=end,
         )
 
@@ -104,7 +103,7 @@ class BaseModuleBenchmark:
 
     def __init__(self) -> None:
         if self.MODULE not in MODULES:
-            raise NotImplementedError
+            raise NotImplementedError(f"Unknown module [{self.MODULE}]")
         self.intro()
         self.results = [b() for b in self.BENCHMARKS]
         self.print_results()

@@ -4,10 +4,19 @@
         {
             "name": "Benchmark",
             "type": "debugpy",
-            "program": "scripts/main.py",
+            "program": "utils/main.py",
             "request": "launch",
             "console": "integratedTerminal",
             "args": ["-b"],
+            "justMyCode": true
+        },
+        {
+            "name": "List functions",
+            "type": "debugpy",
+            "program": "utils/main.py",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "args": ["-l"],
             "justMyCode": true
         }
     ]
