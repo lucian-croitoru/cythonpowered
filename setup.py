@@ -15,8 +15,8 @@ py_ver = python_version[0]
 py_subver = python_version[1]
 if py_ver != 3:
     raise PythonVersionError(f"Python 3 required. Installed version is {py_ver}")
-if py_subver not in range(8, 12):
-    raise PythonVersionError("Setup requires Python>=3.8,<3.12")
+if py_subver not in range(8, 13):
+    raise PythonVersionError("Setup requires Python>=3.8,<=3.13")
 
 
 NAME = "cythonpowered"
@@ -39,6 +39,8 @@ CLASSIFIERS = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
