@@ -1,1 +1,7 @@
 include CHANGELOG.md
+recursive-include cythonpowered *.pyx
+prune tests
+global-exclude *.c
+global-exclude *.so
+global-exclude *.pyc
+global-exclude __pycache__
