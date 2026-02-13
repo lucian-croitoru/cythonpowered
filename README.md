@@ -20,7 +20,7 @@ Run `cythonpowered --list` to view all available functions and their `Python` co
    | (__| |_| | |_| | | | (_) | | | | |_) | (_) \ V  V /  __/ | |  __/ (_| |
     \___|\__, |\__|_| |_|\___/|_| |_| .__/ \___/ \_/\_/ \___|_|  \___|\__,_|
          |___/                      |_|                                     
-                                                                  ver. 0.1.11
+                                                                  ver. 0.1.12
 
 +---+--------------------------------+----------------------------+-----------------------------------------------------------------------+
 | # | [cythonpowered] function       | Replaces [Python] function | Usage / details                                                       |
@@ -46,7 +46,7 @@ Run `cythonpowered --benchmark` o view the performance gains **on your system** 
    | (__| |_| | |_| | | | (_) | | | | |_) | (_) \ V  V /  __/ | |  __/ (_| |
     \___|\__, |\__|_| |_|\___/|_| |_| .__/ \___/ \_/\_/ \___|_|  \___|\__,_|
          |___/                      |_|                                     
-                                                                  ver. 0.1.11
+                                                                  ver. 0.1.12
 
 CPU model:             11th Gen Intel(R) Core(TM) i7-11370H @ 3.30GHz
 CPU base frequency:    3.3000 GHz

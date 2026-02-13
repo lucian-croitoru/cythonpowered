@@ -18,7 +18,7 @@ if py_subver not in range(8, 15):
 
 
 NAME = "cythonpowered"
-VERSION = "0.1.11"
+VERSION = "0.1.12"
 LICENSE = "GNU GPLv3"
 DESCRIPTION = "Cython-powered replacements for popular Python functions. And more."
 AUTHOR = "Lucian Croitoru"

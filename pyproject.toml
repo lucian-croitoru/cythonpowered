@@ -12,7 +12,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cythonpowered"
-version = "0.1.11"
+version = "0.1.12"
 description = "Cython-powered replacements for popular Python functions. And more."
 readme = "README.md"
 license = {text = "GNU GPLv3"}
