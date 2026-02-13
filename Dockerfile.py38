@@ -1,0 +1,31 @@
+# Dockerfile for testing cythonpowered package installation (Python 3.8)
+# Tests that pip install automatically handles build dependencies and Cython compilation
+FROM python:3.8-slim
+
+WORKDIR /app
+
+# Install system build dependencies (required for C extension compilation)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the source code
+COPY . .
+
+# Install the package from source
+# pip will automatically install setup_requires (build dependencies) and compile Cython modules
+RUN pip install --no-cache-dir .
+
+# Verify installation
+RUN python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed successfully')"
+
+# Run basic import tests
+RUN python -c "from cythonpowered.random import random; print('✓ Cython modules compiled and imported successfully')"
+
+# Run benchmark to verify Cython build works
+RUN python3 -m utils.main -b
+
+# Default command
+CMD ["python", "-c", "import cythonpowered; print(f'cythonpowered {cythonpowered.VERSION} is ready'); import sys; sys.exit(0)"]

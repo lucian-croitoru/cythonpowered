@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  test-py314:
+    build:
+      context: .
+      dockerfile: Dockerfile.py314
+    image: cythonpowered:test-py314
+    container_name: cythonpowered-test-py314
+    environment:
+      PYTHONUNBUFFERED: 1
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+
+  test-py313:
+    build:
+      context: .
+      dockerfile: Dockerfile.py313
+    image: cythonpowered:test-py313
+    container_name: cythonpowered-test-py313
+    environment:
+      PYTHONUNBUFFERED: 1
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+
+  test-py312:
+    build:
+      context: .
+      dockerfile: Dockerfile.py312
+    image: cythonpowered:test-py312
+    container_name: cythonpowered-test-py312
+    environment:
+      PYTHONUNBUFFERED: 1
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+
+  test-py311:
+    build:
+      context: .
+      dockerfile: Dockerfile.py311
+    image: cythonpowered:test-py311
+    container_name: cythonpowered-test-py311
+    environment:
+      PYTHONUNBUFFERED: 1
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+
+  test-py310:
+    build:
+      context: .
+      dockerfile: Dockerfile.py310
+    image: cythonpowered:test-py310
+    container_name: cythonpowered-test-py310
+    environment:
+      PYTHONUNBUFFERED: 1
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+
+  test-py39:
+    build:
+      context: .
+      dockerfile: Dockerfile.py39
+    image: cythonpowered:test-py39
+    container_name: cythonpowered-test-py39
+    environment:
+      PYTHONUNBUFFERED: 1
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+
+  test-py38:
+    build:
+      context: .
+      dockerfile: Dockerfile.py38
+    image: cythonpowered:test-py38
+    container_name: cythonpowered-test-py38
+    environment:
+      PYTHONUNBUFFERED: 1
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"

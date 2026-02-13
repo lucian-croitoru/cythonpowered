@@ -1,5 +1,13 @@
 # CHANGELOG
 
+### 0.1.12 - 2026-02-13
+- Bugfix in setup
+
+### 0.1.11 - 2026-02-13
+- Performance improvements for the `random` module
+- Added containerized tests
+- Supported Python versions are 3.8 - 3.14
+
 ### 0.1.10 - 2024-10-08
 - Added the `cythonpowered --list` command
 - Added initial documentation

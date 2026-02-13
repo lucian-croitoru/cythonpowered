@@ -1,0 +1,68 @@
+[build-system]
+requires = [
+    "setuptools>=74.0.0",
+    "wheel>=0.40.0",
+    "Cython>=3.0.0",
+    "packaging>=24.0",
+    "more-itertools>=10.0.0",
+    "jaraco.functools>=4.0.0",
+    "jaraco.text>=4.0.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cythonpowered"
+version = "0.1.12"
+description = "Cython-powered replacements for popular Python functions. And more."
+readme = "README.md"
+license = {text = "GNU GPLv3"}
+authors = [
+    {name = "Lucian Croitoru", email = "lucianalexandru.croitoru@gmail.com"},
+]
+keywords = ["python", "cython", "random", "performance"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8,<3.15"
+dependencies = [
+    "psutil>=6.0.0",
+    "py-cpuinfo>=9.0.0",
+    "prettytable>=3.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/lucian-croitoru/cythonpowered"
+
+[project.scripts]
+cythonpowered = "utils.main:main"
+
+[tool.setuptools]
+packages = [
+    "cythonpowered",
+    "cythonpowered.random",
+    "utils",
+    "utils.benchmark",
+    "utils.definitions",
+]
+
+[tool.setuptools.package-data]
+cythonpowered = ["*.pyx"]
+
+[tool.cython.build-ext]
+# This tells setuptools to build Cython extensions
+# The extensions are defined in setup.py which is still needed for Cython compilation
