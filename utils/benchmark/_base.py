@@ -40,7 +40,8 @@ class BaseFunctionBenchmark:
             " and [" + cython_n_func_ref + "]" if cython_n_func_ref is not None else ""
         )
         self.log(
-            f"Comparing [{self.python_function.reference}] with [{self.cython_function.reference}]{cython_n_func_msg}... {(progress/total*100):.2f}%",
+            # f"Comparing [{self.python_function.reference}] with [{self.cython_function.reference}]{cython_n_func_msg}... {(progress/total*100):.2f}%",
+            f"Comparing Python {self.python_function.reference} with cythonpowered alternative(s)... {(progress/total*100):.2f}%",
             end=end,
         )
 
@@ -185,8 +186,8 @@ class BaseModuleBenchmark:
         table.field_names = [
             "Function name",
             "No. of runs",
-            "Execution time (s)",
-            "Time factor",
+            # "Execution time (s)",
+            # "Time factor",
             "Speed factor",
             "Avg. speed factor",
         ]
@@ -209,8 +210,8 @@ class BaseModuleBenchmark:
                 [
                     f"[Python] {r.python_function.reference}",
                     runs,
-                    self.format_execution_times(python_times),
-                    "1.00",
+                    # self.format_execution_times(python_times),
+                    # "1.00",
                     "1.00",
                     "1.00",
                 ]
@@ -219,8 +220,8 @@ class BaseModuleBenchmark:
                 [
                     r.cython_function.reference,
                     runs,
-                    self.format_execution_times(cython_times),
-                    self.format_factors(cython_times, python_times),
+                    # self.format_execution_times(cython_times),
+                    # self.format_factors(cython_times, python_times),
                     self.format_factors(cython_times, python_times, inverted=True),
                     self.format_factor(
                         self.calculate_avg_factor(cython_times, python_times)
@@ -234,8 +235,8 @@ class BaseModuleBenchmark:
                     [
                         r.cython_n_function.reference,
                         runs,
-                        self.format_execution_times(cython_n_times),
-                        self.format_factors(cython_n_times, python_times),
+                        # self.format_execution_times(cython_n_times),
+                        # self.format_factors(cython_n_times, python_times),
                         self.format_factors(
                             cython_n_times, python_times, inverted=True
                         ),
