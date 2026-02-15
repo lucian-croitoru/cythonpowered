@@ -4,7 +4,7 @@ services:
   test-py314:
     build:
       context: .
-      dockerfile: Dockerfile.py314
+      dockerfile: tests/containerized/Dockerfile.py314
     image: cythonpowered:test-py314
     container_name: cythonpowered-test-py314
     environment:
@@ -14,7 +14,7 @@ services:
   test-py313:
     build:
       context: .
-      dockerfile: Dockerfile.py313
+      dockerfile: tests/containerized/Dockerfile.py313
     image: cythonpowered:test-py313
     container_name: cythonpowered-test-py313
     environment:
@@ -24,7 +24,7 @@ services:
   test-py312:
     build:
       context: .
-      dockerfile: Dockerfile.py312
+      dockerfile: tests/containerized/Dockerfile.py312
     image: cythonpowered:test-py312
     container_name: cythonpowered-test-py312
     environment:
@@ -34,7 +34,7 @@ services:
   test-py311:
     build:
       context: .
-      dockerfile: Dockerfile.py311
+      dockerfile: tests/containerized/Dockerfile.py311
     image: cythonpowered:test-py311
     container_name: cythonpowered-test-py311
     environment:
@@ -44,7 +44,7 @@ services:
   test-py310:
     build:
       context: .
-      dockerfile: Dockerfile.py310
+      dockerfile: tests/containerized/Dockerfile.py310
     image: cythonpowered:test-py310
     container_name: cythonpowered-test-py310
     environment:
@@ -54,7 +54,7 @@ services:
   test-py39:
     build:
       context: .
-      dockerfile: Dockerfile.py39
+      dockerfile: tests/containerized/Dockerfile.py39
     image: cythonpowered:test-py39
     container_name: cythonpowered-test-py39
     environment:
@@ -64,7 +64,7 @@ services:
   test-py38:
     build:
       context: .
-      dockerfile: Dockerfile.py38
+      dockerfile: tests/containerized/Dockerfile.py38
     image: cythonpowered:test-py38
     container_name: cythonpowered-test-py38
     environment:
