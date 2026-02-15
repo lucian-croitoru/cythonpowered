@@ -5,8 +5,7 @@ requires = [
     "Cython>=3.0.0",
     "packaging>=24.0",
     "more-itertools>=10.0.0",
-    "jaraco.functools>=4.0.0",
-    "jaraco.text>=4.0.0",
+
 ]
 build-backend = "setuptools.build_meta"
 
