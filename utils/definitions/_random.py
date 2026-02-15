@@ -18,7 +18,7 @@ class CythonRandomRandomDef(BaseFunctionDefinition):
 class CythonRandomNRandomDef(BaseFunctionDefinition):
     function = cy_random.n_random
     reference = "cythonpowered.random.n_random"
-    usage = "n_random(k) is equivalent to [random() for i in range(k)]"
+    usage = "n_random(k) replaces [random() for i in range(k)]"
 
 
 # =============================================================================
@@ -36,7 +36,7 @@ class CythonRandomRandintDef(BaseFunctionDefinition):
 class CythonRandomNRandintDef(BaseFunctionDefinition):
     function = cy_random.n_randint
     reference = "cythonpowered.random.n_randint"
-    usage = "n_randint(a, b, k) is equivalent to [randint(a, b) for i in range(k)]"
+    usage = "n_randint(a, b, k) replaces [randint(a, b) for i in range(k)]"
 
 
 # =============================================================================
@@ -54,7 +54,7 @@ class CythonRandomUniformDef(BaseFunctionDefinition):
 class CythonRandomNUniformDef(BaseFunctionDefinition):
     function = cy_random.n_uniform
     reference = "cythonpowered.random.n_uniform"
-    usage = "n_uniform(a, b, k) is equivalent to [uniform(a, b) for i in range(k)]"
+    usage = "n_uniform(a, b, k) replaces [uniform(a, b) for i in range(k)]"
 
 
 # =============================================================================

@@ -31,8 +31,8 @@ class BaseFunctionDefinitionPrinter:
         table = PrettyTable()
         table.field_names = [
             "#",
-            "[cythonpowered] function",
-            "Replaces [Python] function",
+            "cythonpowered function",
+            "Replaces (Python)",
             "Usage / details",
         ]
         for f in table.field_names:
