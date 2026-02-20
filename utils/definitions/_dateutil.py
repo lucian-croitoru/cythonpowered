@@ -6,79 +6,79 @@ import cythonpowered.dateutil as cy_dateutil
 
 class PythonTodayDef(BaseFunctionDefinition):
     function = py_datetime.date.today
-    reference = "datetime.date.today"
+    reference = "datetime.date.today()"
 
 
 class CythonTodayDef(BaseFunctionDefinition):
     function = cy_dateutil.date.today
-    reference = "cythonpowered.dateutil.date.today"
+    reference = "cythonpowered.dateutil.date.today()"
     usage = REPLACEMENT
 
 
 class PythonIsleapDef(BaseFunctionDefinition):
     function = py_calendar.isleap
-    reference = "calendar.isleap"
+    reference = "calendar.isleap()"
 
 
 class CythonIsleapDef(BaseFunctionDefinition):
     function = cy_dateutil.dateutil.date.isleap
-    reference = "cythonpowered.dateutil.date.isleap"
+    reference = "cythonpowered.dateutil.date.isleap()"
     usage = REPLACEMENT
 
 
 class PythonMonthrangeDef(BaseFunctionDefinition):
     function = py_calendar.monthrange
-    reference = "calendar.monthrange"
+    reference = "calendar.monthrange()"
 
 
 class CythonMonthrangeDef(BaseFunctionDefinition):
     function = cy_dateutil.date.monthrange
-    reference = "cythonpowered.dateutil.date.monthrange"
+    reference = "cythonpowered.dateutil.date.monthrange()"
     usage = REPLACEMENT
 
 
 class PythonFromstringDef(BaseFunctionDefinition):
     function = py_datetime.datetime.strptime
-    reference = "datetime.datetime.strptime"
+    reference = "datetime.datetime.strptime().date()"
 
 
 class CythonFromstringDef(BaseFunctionDefinition):
     function = cy_dateutil.date.fromstring
-    reference = "cythonpowered.dateutil.date.fromstring"
-    usage = REPLACEMENT
+    reference = "cythonpowered.dateutil.date.fromstring()"
+    usage = "Assumes '%Y-%m-%d' format, returns cythonpowered date object"
 
 
 class PythonTostringDef(BaseFunctionDefinition):
     function = py_datetime.date.strftime
-    reference = "datetime.date.strftime"
+    reference = "datetime.date().strftime()"
 
 
 class CythonTostringDef(BaseFunctionDefinition):
     function = cy_dateutil.date.tostring
-    reference = "cythonpowered.dateutil.date.tostring"
-    usage = REPLACEMENT
+    reference = "cythonpowered.dateutil.date().tostring()"
+    usage = "Assumes '%Y-%m-%d' format, uses cythonpowered date object"
 
 
 class PythonWeekdayDef(BaseFunctionDefinition):
     function = py_datetime.date.weekday
-    reference = "datetime.date.weekday"
+    reference = "datetime.date().weekday()"
 
 
 class CythonWeekdayDef(BaseFunctionDefinition):
     function = cy_dateutil.date.weekday
-    reference = "cythonpowered.dateutil.date.weekday"
-    usage = REPLACEMENT
+    reference = "cythonpowered.dateutil.date().weekday()"
+    usage = f"{REPLACEMENT}, uses cythonpowered date object"
 
 
 class PythonYeardayDef(BaseFunctionDefinition):
     function = py_datetime.date.timetuple
-    reference = "datetime.date.timetuple.tm_yday"
+    reference = "datetime.date().timetuple().tm_yday"
 
 
 class CythonYeardayDef(BaseFunctionDefinition):
     function = cy_dateutil.date.yearday
-    reference = "cythonpowered.dateutil.date.yearday"
-    usage = REPLACEMENT
+    reference = "cythonpowered.dateutil.date().yearday()"
+    usage = f"{REPLACEMENT}, uses cythonpowered date object"
 
 
 DATEUTIL_DEFINITION_PAIRS = [
