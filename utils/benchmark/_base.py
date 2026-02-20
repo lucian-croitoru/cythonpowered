@@ -191,7 +191,7 @@ class BaseModuleBenchmark:
             # "Execution time (s)",
             # "Time factor",
             "Speed factor",
-            "Avg. speed factor",
+            "Avg. speedup",
         ]
 
         for r in self.results:
