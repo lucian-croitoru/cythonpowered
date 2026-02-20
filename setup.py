@@ -18,7 +18,7 @@ if py_subver not in range(8, 15):
 
 
 NAME = "cythonpowered"
-VERSION = "0.1.12"
+VERSION = "0.2.0"
 LICENSE = "GNU GPLv3"
 DESCRIPTION = "Cython-powered replacements for popular Python functions. And more."
 AUTHOR = "Lucian Croitoru"
@@ -27,7 +27,7 @@ URL = "https://github.com/lucian-croitoru/cythonpowered"
 
 KEYWORDS = ["python", "cython", "random", "performance"]
 CLASSIFIERS = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Operating System :: MacOS",
     "Operating System :: POSIX",
@@ -60,7 +60,7 @@ long_description = long_description + "\n\n" + changelog
 from Cython.Build import cythonize
 
 # Cython modules to build
-CYTHON_MODULES = ["random"]
+CYTHON_MODULES = ["random", "dateutil"]
 
 # Get Cython module information
 cython_file_list = [
@@ -106,6 +106,7 @@ setup(
     packages=[
         "cythonpowered",
         "cythonpowered.random",
+        "cythonpowered.dateutil",
         "utils",
         "utils.benchmark",
         "utils.definitions",
