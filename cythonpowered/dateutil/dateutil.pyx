@@ -45,8 +45,8 @@ cdef inline unsigned int c_today_seconds():
 
 @lru_cache(maxsize=1)
 def c_cached_today(unsigned int s):
-    cdef d = time.localtime(s)
-    return date(d.tm_year, d.tm_mon, d.tm_mday + 1)
+    cdef d = time.gmtime(s)
+    return date(d.tm_year, d.tm_mon, d.tm_mday)
 
 cdef inline date c_today():
     cdef unsigned int s = c_today_seconds()
