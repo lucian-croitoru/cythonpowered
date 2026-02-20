@@ -14,7 +14,8 @@ class BaseFunctionBenchmark:
     python_function: BaseFunctionDefinition
     cython_function: BaseFunctionDefinition
     cython_n_function: Optional[BaseFunctionDefinition] = None
-    args: list = []
+    python_args: List = []
+    cython_args: List = []
     kwargs: dict = {}
     runs: Optional[List[int]] = DEFAULT_RUNS
 
@@ -53,7 +54,8 @@ class BaseFunctionBenchmark:
         if self.cython_n_function is not None:
             cython_n_func = self.cython_n_function.function
 
-        args = self.args
+        python_args = self.python_args
+        cython_args = self.cython_args
         kwargs = self.kwargs
         runs = self.runs
 
@@ -65,7 +67,7 @@ class BaseFunctionBenchmark:
         for run in runs:
             # Run Python function
             st = time()
-            py_results = [python_func(*args, **kwargs) for i in range(run)]
+            py_results = [python_func(*python_args, **kwargs) for i in range(run)]
             et = time()
             python_time = et - st
 
@@ -74,7 +76,7 @@ class BaseFunctionBenchmark:
 
             # Run cythonpowered function
             st = time()
-            cy_results = [cython_func(*args, **kwargs) for i in range(run)]
+            cy_results = [cython_func(*cython_args, **kwargs) for i in range(run)]
             et = time()
             cython_time = et - st
 
@@ -85,7 +87,7 @@ class BaseFunctionBenchmark:
             cython_n_time = None
             if cython_n_func is not None:
                 st = time()
-                n_results = cython_n_func(*args, run, **kwargs)
+                n_results = cython_n_func(*cython_args, run, **kwargs)
                 et = time()
                 cython_n_time = et - st
 

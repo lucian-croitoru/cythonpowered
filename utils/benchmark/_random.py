@@ -32,26 +32,30 @@ class RandintBenchmarkDefinition(BaseFunctionBenchmark):
     python_function = PythonRandomRandintDef
     cython_function = CythonRandomRandintDef
     cython_n_function = CythonRandomNRandintDef
-    args = [-1000000, 1000000]
+    python_args = [-1000000, 1000000]
+    cython_args = python_args
 
 
 class UniformBenchmarkDefinition(BaseFunctionBenchmark):
     python_function = PythonRandomUniformDef
     cython_function = CythonRandomUniformDef
     cython_n_function = CythonRandomNUniformDef
-    args = [-123456.789, 123456.789]
+    python_args = [-123456.789, 123456.789]
+    cython_args = python_args
 
 
 class ChoiceBenchmarkDefinition(BaseFunctionBenchmark):
     python_function = PythonRandomChoiceDef
     cython_function = CythonRandomChoiceDef
-    args = [cy_random.n_randint(-100000, 100000, 10000)]
+    python_args = [cy_random.n_randint(-100000, 100000, 10000)]
+    cython_args = python_args
 
 
 class ChoicesBenchmarkDefinition(BaseFunctionBenchmark):
     python_function = PythonRandomChoicesDef
     cython_function = CythonRandomChoicesDef
-    args = [cy_random.n_randint(-100000, 100000, 10000)]
+    python_args = [cy_random.n_randint(-100000, 100000, 10000)]
+    cython_args = python_args
     kwargs = {"k": 100}
     runs = [1000, 10000, 100000]
 

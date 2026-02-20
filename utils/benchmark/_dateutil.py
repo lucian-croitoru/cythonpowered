@@ -26,23 +26,18 @@ class TodayBenchmarkDefinition(BaseFunctionBenchmark):
     cython_function = CythonTodayDef
 
 
-class WeekdayBenchmarkDefinition(BaseFunctionBenchmark):
-    python_function = PythonWeekdayDef
-    cython_function = CythonWeekdayDef
-    python_args = [datetime.date(2026, 1, 7)]
-    cython_args = [date(2026, 1, 7)]
+class IsleapBenchmarkDefinition(BaseFunctionBenchmark):
+    python_function = PythonIsleapDef
+    cython_function = CythonIsleapDef
+    python_args = [2024]
+    cython_args = python_args
 
 
 class MonthrangeBenchmarkDefinition(BaseFunctionBenchmark):
     python_function = PythonMonthrangeDef
     cython_function = CythonMonthrangeDef
-    args = [2017, 2]
-
-
-class IsleapBenchmarkDefinition(BaseFunctionBenchmark):
-    python_function = PythonIsleapDef
-    cython_function = CythonIsleapDef
-    args = [2024]
+    python_args = [2017, 2]
+    cython_args = python_args
 
 
 class FromstringBenchmarkDefinition(BaseFunctionBenchmark):
@@ -56,6 +51,13 @@ class TostringBenchmarkDefinition(BaseFunctionBenchmark):
     python_function = PythonTostringDef
     cython_function = CythonTostringDef
     python_args = [datetime.date(2026, 1, 7), "%Y-%m-%d"]
+    cython_args = [date(2026, 1, 7)]
+
+
+class WeekdayBenchmarkDefinition(BaseFunctionBenchmark):
+    python_function = PythonWeekdayDef
+    cython_function = CythonWeekdayDef
+    python_args = [datetime.date(2026, 1, 7)]
     cython_args = [date(2026, 1, 7)]
 
 
