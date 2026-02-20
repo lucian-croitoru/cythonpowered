@@ -70,6 +70,17 @@ class CythonWeekdayDef(BaseFunctionDefinition):
     usage = REPLACEMENT
 
 
+class PythonYeardayDef(BaseFunctionDefinition):
+    function = py_datetime.date.timetuple
+    reference = "datetime.date.timetuple.tm_yday"
+
+
+class CythonYeardayDef(BaseFunctionDefinition):
+    function = cy_dateutil.date.yearday
+    reference = "cythonpowered.dateutil.date.yearday"
+    usage = REPLACEMENT
+
+
 DATEUTIL_DEFINITION_PAIRS = [
     [PythonTodayDef, CythonTodayDef],
     [PythonIsleapDef, CythonIsleapDef],
@@ -77,4 +88,5 @@ DATEUTIL_DEFINITION_PAIRS = [
     [PythonFromstringDef, CythonFromstringDef],
     [PythonTostringDef, CythonTostringDef],
     [PythonWeekdayDef, CythonWeekdayDef],
+    [PythonYeardayDef, CythonYeardayDef],
 ]

@@ -35,6 +35,9 @@ cdef class date:
 
     cpdef weekday(self):
         return c_weekday(self)
+    
+    cpdef yearday(self):
+        return c_yearday(self)
 # -----------------------------------------------------------------------------
 
 
@@ -87,13 +90,13 @@ cpdef inline tuple cp_monthrange(unsigned short year, unsigned char month):
 
 
 # -----------------------------------------------------------------------
-cdef date c_fromstring(str yyyy_mm_dd):
+cdef inline date c_fromstring(str yyyy_mm_dd):
     cdef unsigned short year = int(yyyy_mm_dd[0:4])
     cdef unsigned char month = int(yyyy_mm_dd[5:7])
     cdef unsigned char day = int(yyyy_mm_dd[8:10])
     return date(year, month, day)
 
-cpdef date cp_fromstring(str yyyy_mm_dd):
+cpdef inline date cp_fromstring(str yyyy_mm_dd):
     # Given a string like yyyy-mm-dd (or with any separator), returns a date
     # Replacement for datetime.datetime.strptime(st,'%Y-%m-%d').date()
     return c_fromstring(yyyy_mm_dd)
@@ -101,7 +104,7 @@ cpdef date cp_fromstring(str yyyy_mm_dd):
 
 
 # -----------------------------------------------------------------------
-cdef str c_tostring(date date, str separator = "-"):
+cdef inline str c_tostring(date date, str separator = "-"):
 # Returns a date string similar to datetime.date().strftime('%Y-%m-%d')
     cdef str datestr = str(date.year) + separator
     if date.month < 10:
@@ -127,4 +130,17 @@ cdef inline unsigned char c_weekday(date date):
         y -= 1
     cdef char wd = ((y + y//4 - y//100 + y//400 + weekday_helper[date.month - 1] + date.day) % 7) - 1
     return 6 if wd < 0 else wd
+# -----------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
+cdef inline unsigned short[12] yearday_helper = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+
+cdef inline unsigned short c_yearday(date date):
+    # Returns the day of the year from a given date
+    # Replaces datetime.date().timetuple().tm_yday
+    cdef unsigned short elapsed = yearday_helper[date.month - 1] + date.day
+    if date.month >= 3:
+        elapsed += date.isleap(date.year)
+    return elapsed
 # -----------------------------------------------------------------------------

@@ -48,3 +48,13 @@ def test_weekday():
         test_pydate = datetime.date(year, month, d)
         test_cydate = cythonpowered.dateutil.date(year, month, d)
         assert test_pydate.weekday() == test_cydate.weekday()
+
+
+def test_yearday():
+    for year in [2000, 2001]:
+        for month in range(1, 13):
+            rng = calendar.monthrange(year, month)[1] + 1
+            for day in range(1, rng):
+                test_pydate = datetime.date(year, month, day)
+                test_cydate = cythonpowered.dateutil.date(year, month, day)
+                assert test_pydate.timetuple().tm_yday == test_cydate.yearday()
