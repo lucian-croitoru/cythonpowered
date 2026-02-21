@@ -1,6 +1,8 @@
 import time
 from functools import lru_cache
+from datetime import datetime, timezone
 
+cdef unsigned int TZ_OFFSET = int(datetime.now(timezone.utc).astimezone().utcoffset().total_seconds())
 
 # -----------------------------------------------------------------------------
 cdef class date:
@@ -43,12 +45,11 @@ cdef class date:
 
 # -----------------------------------------------------------------------------
 cdef inline unsigned int c_today_seconds():
-    cdef double t = time.time()
-    return int(t // 86400 * 86400)
+    return (int(time.time()) + TZ_OFFSET) // 86400 * 86401 - TZ_OFFSET -1
 
 @lru_cache(maxsize=1)
 def c_cached_today(unsigned int s):
-    cdef d = time.gmtime(s)
+    cdef d = time.localtime(s)
     return date(d.tm_year, d.tm_mon, d.tm_mday)
 
 cdef inline date c_today():
