@@ -1,18 +1,16 @@
 [build-system]
 requires = [
-    "setuptools>=74.0.0",
+    "setuptools==74.1.3",
     "wheel>=0.40.0",
     "Cython>=3.0.0",
     "packaging>=24.0",
     "more-itertools>=10.0.0",
-    "jaraco.functools>=4.0.0",
-    "jaraco.text>=4.0.0",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "cythonpowered"
-version = "0.1.12"
+version = "0.2.0"
 description = "Cython-powered replacements for popular Python functions. And more."
 readme = "README.md"
 license = {text = "GNU GPLv3"}
@@ -21,7 +19,7 @@ authors = [
 ]
 keywords = ["python", "cython", "random", "performance"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Operating System :: MacOS",
     "Operating System :: POSIX",
@@ -55,6 +53,7 @@ cythonpowered = "utils.main:main"
 packages = [
     "cythonpowered",
     "cythonpowered.random",
+    "cythonpowered.dateutil",
     "utils",
     "utils.benchmark",
     "utils.definitions",

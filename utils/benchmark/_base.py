@@ -14,7 +14,8 @@ class BaseFunctionBenchmark:
     python_function: BaseFunctionDefinition
     cython_function: BaseFunctionDefinition
     cython_n_function: Optional[BaseFunctionDefinition] = None
-    args: list = []
+    python_args: List = []
+    cython_args: List = []
     kwargs: dict = {}
     runs: Optional[List[int]] = DEFAULT_RUNS
 
@@ -40,7 +41,8 @@ class BaseFunctionBenchmark:
             " and [" + cython_n_func_ref + "]" if cython_n_func_ref is not None else ""
         )
         self.log(
-            f"Comparing [{self.python_function.reference}] with [{self.cython_function.reference}]{cython_n_func_msg}... {(progress/total*100):.2f}%",
+            # f"Comparing [{self.python_function.reference}] with [{self.cython_function.reference}]{cython_n_func_msg}... {(progress/total*100):.2f}%",
+            f"Comparing Python {self.python_function.reference} with cythonpowered alternative(s)... {(progress/total*100):.2f}%",
             end=end,
         )
 
@@ -52,7 +54,8 @@ class BaseFunctionBenchmark:
         if self.cython_n_function is not None:
             cython_n_func = self.cython_n_function.function
 
-        args = self.args
+        python_args = self.python_args
+        cython_args = self.cython_args
         kwargs = self.kwargs
         runs = self.runs
 
@@ -64,7 +67,7 @@ class BaseFunctionBenchmark:
         for run in runs:
             # Run Python function
             st = time()
-            py_results = [python_func(*args, **kwargs) for i in range(run)]
+            py_results = [python_func(*python_args, **kwargs) for i in range(run)]
             et = time()
             python_time = et - st
 
@@ -73,7 +76,7 @@ class BaseFunctionBenchmark:
 
             # Run cythonpowered function
             st = time()
-            cy_results = [cython_func(*args, **kwargs) for i in range(run)]
+            cy_results = [cython_func(*cython_args, **kwargs) for i in range(run)]
             et = time()
             cython_time = et - st
 
@@ -84,7 +87,7 @@ class BaseFunctionBenchmark:
             cython_n_time = None
             if cython_n_func is not None:
                 st = time()
-                n_results = cython_n_func(*args, run, **kwargs)
+                n_results = cython_n_func(*cython_args, run, **kwargs)
                 et = time()
                 cython_n_time = et - st
 
@@ -185,10 +188,10 @@ class BaseModuleBenchmark:
         table.field_names = [
             "Function name",
             "No. of runs",
-            "Execution time (s)",
-            "Time factor",
+            # "Execution time (s)",
+            # "Time factor",
             "Speed factor",
-            "Avg. speed factor",
+            "Avg. speedup",
         ]
 
         for r in self.results:
@@ -209,8 +212,8 @@ class BaseModuleBenchmark:
                 [
                     f"[Python] {r.python_function.reference}",
                     runs,
-                    self.format_execution_times(python_times),
-                    "1.00",
+                    # self.format_execution_times(python_times),
+                    # "1.00",
                     "1.00",
                     "1.00",
                 ]
@@ -219,8 +222,8 @@ class BaseModuleBenchmark:
                 [
                     r.cython_function.reference,
                     runs,
-                    self.format_execution_times(cython_times),
-                    self.format_factors(cython_times, python_times),
+                    # self.format_execution_times(cython_times),
+                    # self.format_factors(cython_times, python_times),
                     self.format_factors(cython_times, python_times, inverted=True),
                     self.format_factor(
                         self.calculate_avg_factor(cython_times, python_times)
@@ -234,8 +237,8 @@ class BaseModuleBenchmark:
                     [
                         r.cython_n_function.reference,
                         runs,
-                        self.format_execution_times(cython_n_times),
-                        self.format_factors(cython_n_times, python_times),
+                        # self.format_execution_times(cython_n_times),
+                        # self.format_factors(cython_n_times, python_times),
                         self.format_factors(
                             cython_n_times, python_times, inverted=True
                         ),

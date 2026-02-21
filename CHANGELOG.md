@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 0.2.0 - 2026-02-22
+- Added the `dateutil` module
+- Various internal tweaks
+
 ### 0.1.12 - 2026-02-13
 - Bugfix in setup
 

@@ -6,7 +6,7 @@ from utils.definitions.list_functions import AllFunctionDefinitionPrinter
 from cythonpowered import VERSION
 
 
-TITLE = f"""
+TITLE = rf"""
                _   _                                                      _ 
      ___ _   _| |_| |__   ___  _ __  _ __   _____      _____ _ __ ___  __| |
     / __| | | | __| '_ \ / _ \| '_ \| '_ \ / _ \ \ /\ / / _ \ '__/ _ \/ _` |

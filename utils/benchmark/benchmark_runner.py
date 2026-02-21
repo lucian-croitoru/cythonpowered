@@ -4,11 +4,12 @@ import psutil
 from typing import Optional
 
 from utils.benchmark._random import RandomBenchmark
+from utils.benchmark._dateutil import DateutilBenchmark
 
 
 class BenchmarkRunner:
 
-    MODULE_BENCHMARKS = [RandomBenchmark]
+    MODULE_BENCHMARKS = [RandomBenchmark, DateutilBenchmark]
 
     def __init__(self) -> None:
         sys_info = self.get_system_info()
