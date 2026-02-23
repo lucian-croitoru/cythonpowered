@@ -4,6 +4,10 @@ import calendar as py_calendar
 import cythonpowered.dateutil as cy_dateutil
 
 
+def py_offset(date, offset):
+    return date + py_datetime.timedelta(days=offset)
+
+
 class PythonTodayDef(BaseFunctionDefinition):
     function = py_datetime.date.today
     reference = "datetime.date.today()"
@@ -81,6 +85,39 @@ class CythonYeardayDef(BaseFunctionDefinition):
     usage = f"{REPLACEMENT}, uses cythonpowered date object"
 
 
+class PythonFromordinalDef(BaseFunctionDefinition):
+    function = py_datetime.date.fromordinal
+    reference = "datetime.date.fromordinal()"
+
+
+class CythonFromordinalDef(BaseFunctionDefinition):
+    function = cy_dateutil.date.fromordinal
+    reference = "cythonpowered.dateutil.date.fromordinal()"
+    usage = f"{REPLACEMENT}, returns cythonpowered date object"
+
+
+class PythonToordinalDef(BaseFunctionDefinition):
+    function = py_datetime.date.toordinal
+    reference = "datetime.date().toordinal()"
+
+
+class CythonToordinalDef(BaseFunctionDefinition):
+    function = cy_dateutil.date.toordinal
+    reference = "cythonpowered.dateutil.date().toordinal()"
+    usage = f"{REPLACEMENT}, uses cythonpowered date object"
+
+
+class PythonOffsetDef(BaseFunctionDefinition):
+    function = py_offset
+    reference = "datetime.date() +/- datetime.timedelta()"
+
+
+class CythonOffsetDef(BaseFunctionDefinition):
+    function = cy_dateutil.date.offset
+    reference = "cythonpowered.dateutil.date().offset()"
+    usage = "Supports only days offset, returns cythonpowered date object"
+
+
 DATEUTIL_DEFINITION_PAIRS = [
     [PythonTodayDef, CythonTodayDef],
     [PythonIsleapDef, CythonIsleapDef],
@@ -89,4 +126,7 @@ DATEUTIL_DEFINITION_PAIRS = [
     [PythonTostringDef, CythonTostringDef],
     [PythonWeekdayDef, CythonWeekdayDef],
     [PythonYeardayDef, CythonYeardayDef],
+    [PythonFromordinalDef, CythonFromordinalDef],
+    [PythonToordinalDef, CythonToordinalDef],
+    [PythonOffsetDef, CythonOffsetDef],
 ]
