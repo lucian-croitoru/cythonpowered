@@ -1,8 +1,8 @@
 import time
 from functools import lru_cache
-from datetime import datetime, timezone
+import datetime
 
-cdef unsigned int TZ_OFFSET = int(datetime.now(timezone.utc).astimezone().utcoffset().total_seconds())
+cdef unsigned int TZ_OFFSET = int(datetime.datetime.now(datetime.timezone.utc).astimezone().utcoffset().total_seconds())
 
 # -----------------------------------------------------------------------------
 cdef class date:
@@ -40,6 +40,16 @@ cdef class date:
     
     cpdef yearday(self):
         return c_yearday(self)
+    
+    @staticmethod
+    def fromordinal(ordinal):
+        return cp_fromordinal(ordinal)
+    
+    cpdef toordinal(self):
+        return c_toordinal(self)
+    
+    cpdef offset(self, int days=0):
+        return c_offset(self, days=days)
 # -----------------------------------------------------------------------------
 
 
@@ -144,4 +154,75 @@ cdef inline unsigned short c_yearday(date date):
     if date.month >= 3:
         elapsed += date.isleap(date.year)
     return elapsed
+# -----------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
+cdef inline date c_fromordinal(unsigned int ordinal):
+    cdef int day = ordinal - 1
+
+    cdef unsigned char quadricentennial = day // 146097
+    day -= quadricentennial * 146097
+
+    cdef unsigned char centennial = day // 36524
+    if centennial > 3:
+        centennial = 3
+    day -= centennial * 36524
+
+    cdef unsigned short quadrennial = day // 1461
+    day -= quadrennial * 1461
+
+    cdef unsigned short annual = day // 365
+    if annual > 3:
+        annual = 3
+    day -= annual * 365
+
+    cdef unsigned short year = (
+        quadricentennial * 400 +
+        centennial * 100 +
+        quadrennial * 4 +
+        annual + 1
+    )
+
+    day += 1
+
+    cdef unsigned char month = 1
+    cdef unsigned char[12] month_lengths = [31,28,31,30,31,30,31,31,30,31,30,31]
+
+    if c_isleap(year):
+        month_lengths[1] = 29
+
+    while day > month_lengths[month - 1]:
+        day -= month_lengths[month - 1]
+        month += 1
+
+    return date(year, month, day)
+
+
+cpdef inline date cp_fromordinal(unsigned int ordinal):
+    # Replacement for datetime.date.fromordinal()
+    # May actually be slower, but it is required internally to speedup other functions
+    return c_fromordinal(ordinal)
+# -----------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
+cdef inline unsigned int c_toordinal(date date):
+    # Replacement for datetime.date().toordinal()
+    # May actually be slower, but it is required internally to speedup other functions
+    cdef unsigned short y = date.year - 1
+    cdef unsigned int ordinal = 365 * y + y // 4 - y // 100 + y // 400 + c_yearday(date)
+    return ordinal
+# -----------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
+cdef inline date c_offset(date date, int days=0):
+    # Replacement for datetime.date() +/- datetime.timedelta()"
+    if days == 0:
+        return date
+
+    cdef unsigned int ordinal = c_toordinal(date)
+    ordinal += days
+    return c_fromordinal(ordinal)
 # -----------------------------------------------------------------------------

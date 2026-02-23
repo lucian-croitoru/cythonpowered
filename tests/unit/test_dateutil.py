@@ -58,3 +58,32 @@ def test_yearday():
                 test_pydate = datetime.date(year, month, day)
                 test_cydate = cythonpowered.dateutil.date(year, month, day)
                 assert test_pydate.timetuple().tm_yday == test_cydate.yearday()
+
+
+def test_fromordinal():
+    for i in range(1, 1000000):
+        test_pydate = datetime.date.fromordinal(i)
+        test_cydate = cythonpowered.dateutil.date.fromordinal(i)
+        assert test_pydate.year == test_cydate.year
+        assert test_pydate.month == test_cydate.month
+        assert test_pydate.day == test_cydate.day
+
+
+def test_toordinal():
+    for i in range(1, 1000000):
+        test_pydate = datetime.date.fromordinal(i)
+        test_cydate = cythonpowered.dateutil.date(
+            test_pydate.year, test_pydate.month, test_pydate.day
+        )
+        assert test_cydate.toordinal() == i
+
+
+def test_offset():
+    test_pydate = datetime.date(2026, 1, 1)
+    test_cydate = cythonpowered.dateutil.date(2026, 1, 1)
+    for i in range(-5000, 5000):
+        offset_pydate = test_pydate + datetime.timedelta(days=i)
+        offset_cydate = test_cydate.offset(i)
+        assert offset_pydate.year == offset_cydate.year
+        assert offset_pydate.month == offset_cydate.month
+        assert offset_pydate.day == offset_cydate.day

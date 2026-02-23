@@ -20,6 +20,12 @@ from utils.definitions._dateutil import (
     CythonTostringDef,
     PythonYeardayDef,
     CythonYeardayDef,
+    PythonFromordinalDef,
+    CythonFromordinalDef,
+    PythonToordinalDef,
+    CythonToordinalDef,
+    PythonOffsetDef,
+    CythonOffsetDef,
 )
 
 
@@ -70,6 +76,27 @@ class YeardayBenchmarkDefinition(BaseFunctionBenchmark):
     cython_args = [date(2026, 4, 13)]
 
 
+class FromordinalBenchmarkDefinition(BaseFunctionBenchmark):
+    python_function = PythonFromordinalDef
+    cython_function = CythonFromordinalDef
+    python_args = [739669]
+    cython_args = python_args
+
+
+class ToordinalBenchmarkDefinition(BaseFunctionBenchmark):
+    python_function = PythonToordinalDef
+    cython_function = CythonToordinalDef
+    python_args = [datetime.date(2026, 4, 13)]
+    cython_args = [date(2026, 4, 13)]
+
+
+class OffsetBenchmarkDefinition(BaseFunctionBenchmark):
+    python_function = PythonOffsetDef
+    cython_function = CythonOffsetDef
+    python_args = [datetime.date(2026, 4, 13), 44]
+    cython_args = [date(2026, 4, 13), 44]
+
+
 class DateutilBenchmark(BaseModuleBenchmark):
     MODULE = "dateutil"
     BENCHMARKS = [
@@ -80,4 +107,7 @@ class DateutilBenchmark(BaseModuleBenchmark):
         TostringBenchmarkDefinition,
         WeekdayBenchmarkDefinition,
         YeardayBenchmarkDefinition,
+        FromordinalBenchmarkDefinition,
+        ToordinalBenchmarkDefinition,
+        OffsetBenchmarkDefinition,
     ]
