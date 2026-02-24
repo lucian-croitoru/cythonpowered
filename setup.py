@@ -18,14 +18,13 @@ if py_subver not in range(8, 15):
 
 
 NAME = "cythonpowered"
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 LICENSE = "GNU GPLv3"
 DESCRIPTION = "Cython-powered replacements for popular Python functions. And more."
 AUTHOR = "Lucian Croitoru"
-AUTHOR_EMAIL = "lucianalexandru.croitoru@gmail.com"
 URL = "https://github.com/lucian-croitoru/cythonpowered"
 
-KEYWORDS = ["python", "cython", "random", "performance"]
+KEYWORDS = ["python", "cython", "performance", "random", "datetime", "dateutil"]
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -101,7 +100,6 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     author=AUTHOR,
-    author_email=AUTHOR_EMAIL,
     url=URL,
     packages=[
         "cythonpowered",

@@ -1,5 +1,8 @@
 # CHANGELOG
 
+### 0.2.2 - 2026-02-23
+- Update project metadata
+
 ### 0.2.1 - 2026-02-23
 - Extended the `dateutil` module with the `fromordinal`, `toordinal` and `offset` functions
 

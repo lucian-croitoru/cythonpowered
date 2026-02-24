@@ -10,14 +10,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cythonpowered"
-version = "0.2.1"
+version = "0.2.2"
 description = "Cython-powered replacements for popular Python functions. And more."
 readme = "README.md"
 license = {text = "GNU GPLv3"}
 authors = [
-    {name = "Lucian Croitoru", email = "lucianalexandru.croitoru@gmail.com"},
+    {name = "Lucian Croitoru"},
 ]
-keywords = ["python", "cython", "random", "performance"]
+keywords = ["python", "cython", "performance", "random", "datetime", "dateutil"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
