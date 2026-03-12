@@ -48,8 +48,16 @@ cdef class date:
     cpdef toordinal(self):
         return c_toordinal(self)
     
-    cpdef offset(self, int days=0):
-        return c_offset(self, days=days)
+    cpdef offset(self, short years=0, short months=0, short weeks=0, short days=0):
+        return c_offset(self, years=years, months=months, weeks=weeks, days=days)
+    
+    cpdef increment(self):
+        return c_increment(self)
+    
+    @staticmethod
+    def date_range(date start, date end, str freq, bool return_intervals=False):
+        return cp_date_range(start=start, end=end, freq=freq, return_intervals=return_intervals)
+
 # -----------------------------------------------------------------------------
 
 
@@ -217,12 +225,177 @@ cdef inline unsigned int c_toordinal(date date):
 
 
 # -----------------------------------------------------------------------------
-cdef inline date c_offset(date date, int days=0):
-    # Replacement for datetime.date() +/- datetime.timedelta()"
-    if days == 0:
-        return date
+cdef inline date c_offset(date date, short years=0, short months=0, short weeks=0, short days=0):
+    # Replacement for datetime.date() +/- datetime.timedelta()
+    # Supports extra arguments: `years` and `months`
+    cdef unsigned char[12] month_lengths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    cdef unsigned int ordinal
+    cdef int days_offset = weeks * 7 + days
 
-    cdef unsigned int ordinal = c_toordinal(date)
-    ordinal += days
-    return c_fromordinal(ordinal)
+    if years != 0 or months != 0:
+        date.year = date.year + years + months // 12
+        date.month = date.month + months % 12
+        if c_isleap(date.year):
+            month_lengths[1] = 29
+        if date.day > month_lengths[date.month-1]:
+            date.day = month_lengths[date.month-1]
+    
+    if days_offset != 0:
+        ordinal = c_toordinal(date) + days_offset
+        return c_fromordinal(ordinal)
+    
+    return date
+# -----------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
+cdef inline date c_increment(date input_date):
+    # Adds one day to a given date, without using fromordinal() or toordinal()
+    # Intended as a fast alternative to date.offset() for this special use case
+    cdef date newdate = date(input_date.year, input_date.month, input_date.day)
+    cdef unsigned char mr = c_monthrange(newdate.year, newdate.month)[1]
+    
+    newdate.day += 1
+    if newdate.day <= mr:
+        return newdate
+    else:
+        newdate.day = 1
+        newdate.month += 1
+        if newdate.month > 12:
+            newdate.year += 1
+            newdate.month = 1
+        return newdate
+# -----------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
+cdef inline list c_date_range(date start, date end, str freq, bool return_intervals=False):
+    cdef list period_ends = []
+    cdef unsigned int i
+    cdef str d
+    cdef date dt
+    cdef int startnum, endnum
+    cdef date period_end = date(start.year, start.month, start.day)
+    cdef date period_start = date(start.year, start.month, start.day)
+
+    ### freq means days
+    if freq == "D":
+        startnum = start.toordinal()
+        endnum = end.toordinal()
+        period_ends = [start]
+
+        for i in range(1, endnum - startnum + 1):
+            period_end = c_increment(period_end)
+            period_ends.append(period_end)
+        period_ends = [dt.tostring() for dt in period_ends]
+
+        if return_intervals:
+            return [[d, d] for d in period_ends]
+        else:
+            return period_ends
+
+
+    cdef unsigned int edatenum = end.toordinal()
+    cdef unsigned int pendnum
+    cdef list period_starts = []
+    cdef unsigned int length
+
+
+    ### freq means weeks
+    if freq == "W":    
+        while True:
+            period_end = period_start.offset(days = 6 - period_start.weekday())
+            
+            pendnum = period_end.toordinal()
+            
+            if pendnum < edatenum:
+                # Add next weekend while it is smaller than the end date
+                period_ends.append(period_end)
+                period_start = c_increment(period_end)
+            else:
+                # Finally add the end date and exit the loop
+                period_ends.append(end)
+                break
+
+    ### freq means months
+    if freq == "ME":
+        while True:
+            period_end = date(period_start.year, period_start.month, c_monthrange(period_start.year, period_start.month)[1])
+            
+            pendnum = period_end.toordinal()
+            
+            if pendnum < edatenum:
+                period_ends.append(period_end)
+                period_start = c_increment(period_end)
+            else:
+                period_ends.append(end)
+                break
+
+    ### freq means quarters
+    if freq == "QE":     
+        while True:
+            if period_start.month >= 10:
+                period_end = date(period_start.year, 12, 31)
+            if period_start.month >= 7 and period_start.month <= 9:
+                period_end = date(period_start.year, 9, 30)
+            if period_start.month >= 4 and period_start.month <= 6:
+                period_end = date(period_start.year, 6, 30)
+            if period_start.month <= 3:
+                period_end = date(period_start.year, 3, 31)
+
+            pendnum = period_end.toordinal()
+            
+            if pendnum < edatenum:
+                period_ends.append(period_end)
+                period_start = c_increment(period_end)
+            else:
+                period_ends.append(end)
+                break
+
+    ### freq means semesters
+    if freq == "SE": 
+        while True:
+            if period_start.month >= 7:
+                period_end = date(period_start.year, 12, 31)
+            else:
+                period_end = date(period_start.year, 6, 30)
+            
+            pendnum = period_end.toordinal()
+            
+            if pendnum < edatenum:
+                period_ends.append(period_end)
+                period_start = c_increment(period_end)
+            else:
+                period_ends.append(end)
+                break
+
+    ### freq means years
+    if freq == "YE":
+        while True:
+            period_end = date(period_start.year, 12, 31)
+
+            pendnum = period_end.toordinal()
+            
+            if pendnum < edatenum:
+                period_ends.append(period_end)
+                period_start = c_increment(period_end)
+            else:
+                period_ends.append(end)
+                break
+
+    
+    length = len(period_ends)
+    if return_intervals:
+        period_starts = [start if i == 0 else c_increment(period_ends[i-1]) for i in range(0, length)]
+        return [[period_starts[i].tostring(), period_ends[i].tostring()] for i in range(0, length)]
+    else:
+        return [period_ends[i].tostring() for i in range(0, length)]
+
+
+cpdef inline list cp_date_range(date start, date end, str freq, bool return_intervals=False):
+    # Replacement for pandas.date_range()
+    # Supports days, weeks, months, quarters, semesters, years (freq in [D, W, ME, QE, SE, YE])
+    # If return_intervals is True, splits the respective period in intervals defined by freq
+    # and returns the intervals.
+    return c_date_range(start=start, end=end, freq=freq, return_intervals=return_intervals)
 # -----------------------------------------------------------------------------
