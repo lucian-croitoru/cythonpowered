@@ -12,7 +12,7 @@ def test_today():
 
 
 def test_isleap():
-    for y in range(2000, 2010):
+    for y in range(1900, 2100):
         assert calendar.isleap(y) == cythonpowered.dateutil.date.isleap(y)
 
 
@@ -25,7 +25,7 @@ def test_monthrange():
 
 
 def test_fromstring():
-    datestring = "2022-02-02"
+    datestring = "2026-01-01"
     one = datetime.datetime.strptime(datestring, "%Y-%m-%d").date()
     two = cythonpowered.dateutil.date.fromstring(datestring)
     assert one.year == two.year
@@ -34,9 +34,9 @@ def test_fromstring():
 
 
 def test_tostring():
-    datestring = "2022-02-02"
-    one = datetime.date(2022, 2, 2).strftime("%Y-%m-%d")
-    two = cythonpowered.dateutil.date(2022, 2, 2).tostring()
+    datestring = "2026-01-01"
+    one = datetime.date(2026, 1, 1).strftime("%Y-%m-%d")
+    two = cythonpowered.dateutil.date(2026, 1, 1).tostring()
     assert one == datestring
     assert two == datestring
 
@@ -78,12 +78,104 @@ def test_toordinal():
         assert test_cydate.toordinal() == i
 
 
-def test_offset():
+def test_offset_days_weeks():
     test_pydate = datetime.date(2026, 1, 1)
     test_cydate = cythonpowered.dateutil.date(2026, 1, 1)
     for i in range(-5000, 5000):
-        offset_pydate = test_pydate + datetime.timedelta(days=i)
-        offset_cydate = test_cydate.offset(i)
+        offset_pydate = test_pydate + datetime.timedelta(days=i, weeks=i)
+        offset_cydate = test_cydate.offset(days=i, weeks=i)
         assert offset_pydate.year == offset_cydate.year
         assert offset_pydate.month == offset_cydate.month
         assert offset_pydate.day == offset_cydate.day
+
+
+def test_offset_years_months():
+    test_cydate = cythonpowered.dateutil.date(2026, 1, 1)
+    offset_cydate = test_cydate.offset(years=1, months=14)
+    assert offset_cydate.year == 2028
+    assert offset_cydate.month == 3
+    assert offset_cydate.day == 1
+
+
+def test_offset_all_params():
+    test_cydate = cythonpowered.dateutil.date(2026, 1, 1)
+    offset_cydate = test_cydate.offset(years=1, months=14, weeks=2, days=8)
+    assert offset_cydate.year == 2028
+    assert offset_cydate.month == 3
+    assert offset_cydate.day == 23
+
+
+def test_date_range_D_W():
+    start_date = cythonpowered.dateutil.date(2026, 1, 1)
+    end_date = cythonpowered.dateutil.date(2026, 1, 20)
+    expected_D = [
+        "2026-01-01",
+        "2026-01-02",
+        "2026-01-03",
+        "2026-01-04",
+        "2026-01-05",
+        "2026-01-06",
+        "2026-01-07",
+        "2026-01-08",
+        "2026-01-09",
+        "2026-01-10",
+        "2026-01-11",
+        "2026-01-12",
+        "2026-01-13",
+        "2026-01-14",
+        "2026-01-15",
+        "2026-01-16",
+        "2026-01-17",
+        "2026-01-18",
+        "2026-01-19",
+        "2026-01-20",
+    ]
+    expected_W = ["2026-01-04", "2026-01-11", "2026-01-18", "2026-01-20"]
+
+    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "D")
+    assert test_range == expected_D
+    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "W")
+    assert test_range == expected_W
+
+
+def test_date_range_ME_QE():
+    start_date = cythonpowered.dateutil.date(2026, 1, 1)
+    end_date = cythonpowered.dateutil.date(2026, 11, 20)
+    expected_ME = [
+        "2026-01-31",
+        "2026-02-28",
+        "2026-03-31",
+        "2026-04-30",
+        "2026-05-31",
+        "2026-06-30",
+        "2026-07-31",
+        "2026-08-31",
+        "2026-09-30",
+        "2026-10-31",
+        "2026-11-20",
+    ]
+    expected_QE = ["2026-03-31", "2026-06-30", "2026-09-30", "2026-11-20"]
+
+    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "ME")
+    assert test_range == expected_ME
+    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "QE")
+    assert test_range == expected_QE
+
+
+def test_date_range_SE_YE():
+    start_date = cythonpowered.dateutil.date(2026, 1, 1)
+    end_date = cythonpowered.dateutil.date(2028, 11, 20)
+    expected_SE = [
+        "2026-06-30",
+        "2026-12-31",
+        "2027-06-30",
+        "2027-12-31",
+        "2028-06-30",
+        "2028-11-20",
+    ]
+    expected_YE = ["2026-12-31", "2027-12-31", "2028-11-20"]
+
+    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "SE")
+    assert test_range == expected_SE
+    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "YE")
+    assert test_range == expected_YE
