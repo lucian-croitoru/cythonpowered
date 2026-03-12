@@ -26,6 +26,10 @@ from utils.definitions._dateutil import (
     CythonToordinalDef,
     PythonOffsetDef,
     CythonOffsetDef,
+    PythonIncrementDef,
+    CythonIncrementDef,
+    PythonDaterangeDef,
+    CythonDaterangeDef,
 )
 
 
@@ -93,8 +97,25 @@ class ToordinalBenchmarkDefinition(BaseFunctionBenchmark):
 class OffsetBenchmarkDefinition(BaseFunctionBenchmark):
     python_function = PythonOffsetDef
     cython_function = CythonOffsetDef
-    python_args = [datetime.date(2026, 4, 13), 44]
-    cython_args = [date(2026, 4, 13), 44]
+    python_args = [datetime.date(2026, 4, 13)]
+    cython_args = [date(2026, 4, 13)]
+    kwargs = {"days": 47, "weeks": -2}
+
+
+class IncrementBenchmarkDefinition(BaseFunctionBenchmark):
+    python_function = PythonIncrementDef
+    cython_function = CythonIncrementDef
+    python_args = [datetime.date(2026, 4, 13), 1]
+    cython_args = [date(2026, 4, 13)]
+
+
+class DaterangeBenchmarkDefinition(BaseFunctionBenchmark):
+    python_function = PythonDaterangeDef
+    cython_function = CythonDaterangeDef
+    python_args = [datetime.date(2026, 4, 13), datetime.date(2027, 8, 28)]
+    cython_args = [date(2026, 4, 13), date(2027, 8, 28)]
+    kwargs = {"freq": "ME"}
+    runs = [100, 1000, 10000]
 
 
 class DateutilBenchmark(BaseModuleBenchmark):
@@ -110,4 +131,6 @@ class DateutilBenchmark(BaseModuleBenchmark):
         FromordinalBenchmarkDefinition,
         ToordinalBenchmarkDefinition,
         OffsetBenchmarkDefinition,
+        IncrementBenchmarkDefinition,
+        DaterangeBenchmarkDefinition,
     ]

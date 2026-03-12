@@ -2,10 +2,11 @@ from utils.definitions._base import BaseFunctionDefinition, REPLACEMENT
 import datetime as py_datetime
 import calendar as py_calendar
 import cythonpowered.dateutil as cy_dateutil
+import pandas
 
 
-def py_offset(date, offset):
-    return date + py_datetime.timedelta(days=offset)
+def py_offset(date, days=0, weeks=0):
+    return date + py_datetime.timedelta(days=days, weeks=weeks)
 
 
 class PythonTodayDef(BaseFunctionDefinition):
@@ -115,7 +116,29 @@ class PythonOffsetDef(BaseFunctionDefinition):
 class CythonOffsetDef(BaseFunctionDefinition):
     function = cy_dateutil.date.offset
     reference = "cythonpowered.dateutil.date().offset()"
-    usage = "Supports only days offset, returns cythonpowered date object"
+    usage = "Supports days/weeks/months/years offset, returns cythonpowered date object"
+
+
+class PythonIncrementDef(BaseFunctionDefinition):
+    function = py_offset
+    reference = "datetime.date() + datetime.timedelta(days=1)"
+
+
+class CythonIncrementDef(BaseFunctionDefinition):
+    function = cy_dateutil.date.increment
+    reference = "cythonpowered.dateutil.date().increment()"
+    usage = "Increments cythonpowered date object by 1 day"
+
+
+class PythonDaterangeDef(BaseFunctionDefinition):
+    function = pandas.date_range
+    reference = "pandas.date_range()"
+
+
+class CythonDaterangeDef(BaseFunctionDefinition):
+    function = cy_dateutil.date.date_range
+    reference = "cythonpowered.dateutil.date_range()"
+    usage = "Uses cythonpowered date object"
 
 
 DATEUTIL_DEFINITION_PAIRS = [
@@ -129,4 +152,6 @@ DATEUTIL_DEFINITION_PAIRS = [
     [PythonFromordinalDef, CythonFromordinalDef],
     [PythonToordinalDef, CythonToordinalDef],
     [PythonOffsetDef, CythonOffsetDef],
+    [PythonIncrementDef, CythonIncrementDef],
+    [PythonDaterangeDef, CythonDaterangeDef],
 ]
