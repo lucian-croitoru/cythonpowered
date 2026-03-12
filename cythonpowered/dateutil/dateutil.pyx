@@ -2,6 +2,13 @@ import time
 from functools import lru_cache
 import datetime
 
+from cpython.unicode cimport (
+    PyUnicode_New,
+    PyUnicode_DATA,
+    PyUnicode_WRITE,
+    PyUnicode_1BYTE_KIND
+)
+
 cdef unsigned int TZ_OFFSET = int(datetime.datetime.now(datetime.timezone.utc).astimezone().utcoffset().total_seconds())
 
 # -----------------------------------------------------------------------------
@@ -108,7 +115,7 @@ cpdef inline tuple cp_monthrange(unsigned short year, unsigned char month):
 # -----------------------------------------------------------------------------
 
 
-# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 cdef inline date c_fromstring(str yyyy_mm_dd):
     cdef unsigned short year = int(yyyy_mm_dd[0:4])
     cdef unsigned char month = int(yyyy_mm_dd[5:7])
@@ -119,21 +126,33 @@ cpdef inline date cp_fromstring(str yyyy_mm_dd):
     # Given a string like yyyy-mm-dd (or with any separator), returns a date
     # Replacement for datetime.datetime.strptime(st,'%Y-%m-%d').date()
     return c_fromstring(yyyy_mm_dd)
-# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
-# -----------------------------------------------------------------------
-cdef inline str c_tostring(date date, str separator = "-"):
-# Returns a date string similar to datetime.date().strftime('%Y-%m-%d')
-    cdef str datestr = str(date.year) + separator
-    if date.month < 10:
-        datestr += '0'
-    datestr += str(date.month) + separator
-    if date.day < 10:
-        datestr += '0'
-    datestr += str(date.day)
-    return datestr
-# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+cdef inline str c_tostring(date d, str separator="-"):
+    # Returns a date string similar to datetime.date().strftime('%Y-%m-%d')
+    # Builds the string directly in C, avoids Python string conversions
+    cdef unsigned short y = d.year
+    cdef unsigned char m = d.month
+    cdef unsigned char day = d.day
+
+    cdef object s = PyUnicode_New(10, 127)
+    cdef void* data = PyUnicode_DATA(s)
+
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 0, 48 + y // 1000)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 1, 48 + (y // 100) % 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 2, 48 + (y // 10) % 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 3, 48 + y % 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 4, separator)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 5, 48 + m // 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 6, 48 + m % 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 7, separator)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 8, 48 + day // 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 9, 48 + day % 10)
+
+    return <str>s
+# -----------------------------------------------------------------------------
 
 
 # -----------------------------------------------------------------------------
