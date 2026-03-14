@@ -1,6 +1,7 @@
 import cythonpowered.dateutil
 import datetime
 import calendar
+import pandas
 
 
 def test_today():
@@ -106,8 +107,10 @@ def test_offset_all_params():
 
 
 def test_date_range_D_W():
-    start_date = cythonpowered.dateutil.date(2026, 1, 1)
-    end_date = cythonpowered.dateutil.date(2026, 1, 20)
+    start_pydate = datetime.date(2026, 1, 1)
+    end_pydate = datetime.date(2026, 1, 20)
+    start_cydate = cythonpowered.dateutil.date(2026, 1, 1)
+    end_cydate = cythonpowered.dateutil.date(2026, 1, 20)
     expected_D = [
         "2026-01-01",
         "2026-01-02",
@@ -130,17 +133,36 @@ def test_date_range_D_W():
         "2026-01-19",
         "2026-01-20",
     ]
-    expected_W = ["2026-01-04", "2026-01-11", "2026-01-18", "2026-01-20"]
+    expected_W = ["2026-01-04", "2026-01-11", "2026-01-18"]
 
-    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "D")
-    assert test_range == expected_D
-    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "W")
-    assert test_range == expected_W
+    # Compare cythonpowered and pandas for freq="D"
+    test_pyrange = pandas.date_range(start_pydate, end_pydate, freq="D")
+    test_cyrange = cythonpowered.dateutil.date.date_range(
+        start_cydate, end_cydate, freq="D"
+    )
+    assert [str(d)[0:10] for d in test_pyrange] == expected_D
+    assert test_cyrange == expected_D
+
+    # Compare cythonpowered and pandas for freq="W"
+    test_pyrange = pandas.date_range(start_pydate, end_pydate, freq="W")
+    test_cyrange = cythonpowered.dateutil.date.date_range(
+        start_cydate, end_cydate, freq="W"
+    )
+    assert [str(d)[0:10] for d in test_pyrange] == expected_W
+    assert test_cyrange == expected_W
+
+    # Check for include_partial_ranges=True (freq=W only)
+    test_cyrange = cythonpowered.dateutil.date.date_range(
+        start_cydate, end_cydate, freq="W", include_partial_ranges=True
+    )
+    assert test_cyrange == expected_W + [end_cydate.tostring()]
 
 
 def test_date_range_ME_QE():
-    start_date = cythonpowered.dateutil.date(2026, 1, 1)
-    end_date = cythonpowered.dateutil.date(2026, 11, 20)
+    start_pydate = datetime.date(2026, 1, 1)
+    end_pydate = datetime.date(2026, 11, 20)
+    start_cydate = cythonpowered.dateutil.date(2026, 1, 1)
+    end_cydate = cythonpowered.dateutil.date(2026, 11, 20)
     expected_ME = [
         "2026-01-31",
         "2026-02-28",
@@ -152,30 +174,70 @@ def test_date_range_ME_QE():
         "2026-08-31",
         "2026-09-30",
         "2026-10-31",
-        "2026-11-20",
     ]
-    expected_QE = ["2026-03-31", "2026-06-30", "2026-09-30", "2026-11-20"]
+    expected_QE = ["2026-03-31", "2026-06-30", "2026-09-30"]
 
-    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "ME")
-    assert test_range == expected_ME
-    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "QE")
-    assert test_range == expected_QE
+    # Compare cythonpowered and pandas for freq="ME"
+    test_pyrange = pandas.date_range(start_pydate, end_pydate, freq="ME")
+    test_cyrange = cythonpowered.dateutil.date.date_range(
+        start_cydate, end_cydate, "ME"
+    )
+    assert [str(d)[0:10] for d in test_pyrange] == expected_ME
+    assert test_cyrange == expected_ME
+
+    # Compare cythonpowered and pandas for freq="QE"
+    test_pyrange = pandas.date_range(start_pydate, end_pydate, freq="QE")
+    test_cyrange = cythonpowered.dateutil.date.date_range(
+        start_cydate, end_cydate, "QE"
+    )
+    assert [str(d)[0:10] for d in test_pyrange] == expected_QE
+    assert test_cyrange == expected_QE
+
+    # Check for include_partial_ranges=True
+    test_cyrange = cythonpowered.dateutil.date.date_range(
+        start_cydate, end_cydate, "ME", include_partial_ranges=True
+    )
+    assert test_cyrange == expected_ME + [end_cydate.tostring()]
+    test_cyrange = cythonpowered.dateutil.date.date_range(
+        start_cydate, end_cydate, "QE", include_partial_ranges=True
+    )
+    assert test_cyrange == expected_QE + [end_cydate.tostring()]
 
 
 def test_date_range_SE_YE():
-    start_date = cythonpowered.dateutil.date(2026, 1, 1)
-    end_date = cythonpowered.dateutil.date(2028, 11, 20)
+    start_pydate = datetime.date(2026, 1, 1)
+    end_pydate = datetime.date(2028, 11, 20)
+    start_cydate = cythonpowered.dateutil.date(2026, 1, 1)
+    end_cydate = cythonpowered.dateutil.date(2028, 11, 20)
     expected_SE = [
         "2026-06-30",
         "2026-12-31",
         "2027-06-30",
         "2027-12-31",
         "2028-06-30",
-        "2028-11-20",
     ]
-    expected_YE = ["2026-12-31", "2027-12-31", "2028-11-20"]
+    expected_YE = ["2026-12-31", "2027-12-31"]
 
-    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "SE")
-    assert test_range == expected_SE
-    test_range = cythonpowered.dateutil.date.date_range(start_date, end_date, "YE")
-    assert test_range == expected_YE
+    # Test cythonpowered (only) for freq="SE" (pandas does not support freq="SE")
+    test_cyrange = cythonpowered.dateutil.date.date_range(
+        start_cydate, end_cydate, "SE"
+    )
+    assert test_cyrange == expected_SE
+
+    # Compare cythonpowered and pandas for freq="YE"
+    test_pyrange = pandas.date_range(start_pydate, end_pydate, freq="YE")
+    test_cyrange = cythonpowered.dateutil.date.date_range(
+        start_cydate, end_cydate, "YE"
+    )
+    assert [str(d)[0:10] for d in test_pyrange] == expected_YE
+    assert test_cyrange == expected_YE
+
+    # Check for include_partial_ranges=True
+    test_cyrange = cythonpowered.dateutil.date.date_range(
+        start_cydate, end_cydate, "SE", include_partial_ranges=True
+    )
+    assert test_cyrange == expected_SE + [end_cydate.tostring()]
+    test_cyrange = cythonpowered.dateutil.date.date_range(
+        start_cydate, end_cydate, "YE", include_partial_ranges=True
+    )
+    assert test_cyrange == expected_YE + [end_cydate.tostring()]
