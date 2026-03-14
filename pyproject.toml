@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cythonpowered"
-version = "0.2.2"
+version = "0.2.3"
 description = "Cython-powered replacements for popular Python functions. And more."
 readme = "README.md"
 license = {text = "GNU GPLv3"}
@@ -26,7 +26,6 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: Unix",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -36,11 +35,12 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-requires-python = ">=3.8,<3.15"
+requires-python = ">=3.9,<3.15"
 dependencies = [
     "psutil>=6.0.0",
     "py-cpuinfo>=9.0.0",
     "prettytable>=3.0.0",
+    "pandas>=2.0.0"
 ]
 
 [project.urls]
