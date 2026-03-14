@@ -25,7 +25,7 @@ python -m utils.main -b
 
 ### Containerized Testing (All Python Versions)
 
-Test across all supported Python versions (3.8-3.14) using Docker:
+Test across all supported Python versions (3.9-3.14) using Docker:
 
 ```bash
 # Run containerized tests

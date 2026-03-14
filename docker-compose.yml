@@ -60,13 +60,3 @@ services:
     environment:
       PYTHONUNBUFFERED: 1
     command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
-
-  test-py38:
-    build:
-      context: .
-      dockerfile: tests/containerized/Dockerfile.py38
-    image: cythonpowered:test-py38
-    container_name: cythonpowered-test-py38
-    environment:
-      PYTHONUNBUFFERED: 1
-    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
