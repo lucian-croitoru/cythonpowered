@@ -151,12 +151,6 @@ def test_date_range_D_W():
     assert [str(d)[0:10] for d in test_pyrange] == expected_W
     assert test_cyrange == expected_W
 
-    # Check for include_partial_ranges=True (freq=W only)
-    test_cyrange = cythonpowered.dateutil.date.date_range(
-        start_cydate, end_cydate, freq="W", include_partial_ranges=True
-    )
-    assert test_cyrange == expected_W + [end_cydate.tostring()]
-
 
 def test_date_range_ME_QE():
     start_pydate = datetime.date(2026, 1, 1)
@@ -193,16 +187,6 @@ def test_date_range_ME_QE():
     assert [str(d)[0:10] for d in test_pyrange] == expected_QE
     assert test_cyrange == expected_QE
 
-    # Check for include_partial_ranges=True
-    test_cyrange = cythonpowered.dateutil.date.date_range(
-        start_cydate, end_cydate, "ME", include_partial_ranges=True
-    )
-    assert test_cyrange == expected_ME + [end_cydate.tostring()]
-    test_cyrange = cythonpowered.dateutil.date.date_range(
-        start_cydate, end_cydate, "QE", include_partial_ranges=True
-    )
-    assert test_cyrange == expected_QE + [end_cydate.tostring()]
-
 
 def test_date_range_SE_YE():
     start_pydate = datetime.date(2026, 1, 1)
@@ -231,13 +215,3 @@ def test_date_range_SE_YE():
     )
     assert [str(d)[0:10] for d in test_pyrange] == expected_YE
     assert test_cyrange == expected_YE
-
-    # Check for include_partial_ranges=True
-    test_cyrange = cythonpowered.dateutil.date.date_range(
-        start_cydate, end_cydate, "SE", include_partial_ranges=True
-    )
-    assert test_cyrange == expected_SE + [end_cydate.tostring()]
-    test_cyrange = cythonpowered.dateutil.date.date_range(
-        start_cydate, end_cydate, "YE", include_partial_ranges=True
-    )
-    assert test_cyrange == expected_YE + [end_cydate.tostring()]
