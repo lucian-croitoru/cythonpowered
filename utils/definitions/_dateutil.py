@@ -17,7 +17,7 @@ class PythonTodayDef(BaseFunctionDefinition):
 class CythonTodayDef(BaseFunctionDefinition):
     function = cy_dateutil.date.today
     reference = "cythonpowered.dateutil.date.today()"
-    usage = REPLACEMENT
+    usage = f"{REPLACEMENT}, returns cythonpowered date object"
 
 
 class PythonIsleapDef(BaseFunctionDefinition):
@@ -138,7 +138,7 @@ class PythonDaterangeDef(BaseFunctionDefinition):
 class CythonDaterangeDef(BaseFunctionDefinition):
     function = cy_dateutil.date.date_range
     reference = "cythonpowered.dateutil.date_range()"
-    usage = "Uses cythonpowered date object"
+    usage = "Uses cythonpowered date object, returns a list of date strings"
 
 
 DATEUTIL_DEFINITION_PAIRS = [
