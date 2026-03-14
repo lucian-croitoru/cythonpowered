@@ -62,8 +62,8 @@ cdef class date:
         return c_increment(self)
     
     @staticmethod
-    def date_range(date start, date end, str freq, bool return_intervals=False):
-        return cp_date_range(start=start, end=end, freq=freq, return_intervals=return_intervals)
+    def date_range(date start, date end, str freq, bool return_intervals=False,bool include_partial_ranges=False):
+        return cp_date_range(start=start, end=end, freq=freq, return_intervals=return_intervals, include_partial_ranges=include_partial_ranges)
 
 # -----------------------------------------------------------------------------
 
@@ -288,7 +288,7 @@ cdef inline date c_increment(date input_date):
 
 
 # -----------------------------------------------------------------------------
-cdef inline list c_date_range(date start, date end, str freq, bool return_intervals=False):
+cdef inline list c_date_range(date start, date end, str freq, bool return_intervals=False, bool include_partial_ranges=False):
     cdef list period_ends = []
     cdef unsigned int i
     cdef str d
@@ -327,14 +327,14 @@ cdef inline list c_date_range(date start, date end, str freq, bool return_interv
             
             pendnum = period_end.toordinal()
             
-            if pendnum < edatenum:
-                # Add next weekend while it is smaller than the end date
+            if pendnum <= edatenum:
                 period_ends.append(period_end)
                 period_start = c_increment(period_end)
             else:
-                # Finally add the end date and exit the loop
-                period_ends.append(end)
+                if include_partial_ranges:
+                    period_ends.append(end)
                 break
+
 
     ### freq means months
     if freq == "ME":
@@ -343,12 +343,14 @@ cdef inline list c_date_range(date start, date end, str freq, bool return_interv
             
             pendnum = period_end.toordinal()
             
-            if pendnum < edatenum:
+            if pendnum <= edatenum:
                 period_ends.append(period_end)
                 period_start = c_increment(period_end)
             else:
-                period_ends.append(end)
+                if include_partial_ranges:
+                    period_ends.append(end)
                 break
+
 
     ### freq means quarters
     if freq == "QE":     
@@ -364,12 +366,14 @@ cdef inline list c_date_range(date start, date end, str freq, bool return_interv
 
             pendnum = period_end.toordinal()
             
-            if pendnum < edatenum:
+            if pendnum <= edatenum:
                 period_ends.append(period_end)
                 period_start = c_increment(period_end)
             else:
-                period_ends.append(end)
+                if include_partial_ranges:
+                    period_ends.append(end)
                 break
+
 
     ### freq means semesters
     if freq == "SE": 
@@ -381,12 +385,14 @@ cdef inline list c_date_range(date start, date end, str freq, bool return_interv
             
             pendnum = period_end.toordinal()
             
-            if pendnum < edatenum:
+            if pendnum <= edatenum:
                 period_ends.append(period_end)
                 period_start = c_increment(period_end)
             else:
-                period_ends.append(end)
+                if include_partial_ranges:
+                    period_ends.append(end)
                 break
+
 
     ### freq means years
     if freq == "YE":
@@ -395,11 +401,12 @@ cdef inline list c_date_range(date start, date end, str freq, bool return_interv
 
             pendnum = period_end.toordinal()
             
-            if pendnum < edatenum:
+            if pendnum <= edatenum:
                 period_ends.append(period_end)
                 period_start = c_increment(period_end)
             else:
-                period_ends.append(end)
+                if include_partial_ranges:
+                    period_ends.append(end)
                 break
 
     
@@ -411,10 +418,10 @@ cdef inline list c_date_range(date start, date end, str freq, bool return_interv
         return [period_ends[i].tostring() for i in range(0, length)]
 
 
-cpdef inline list cp_date_range(date start, date end, str freq, bool return_intervals=False):
+cpdef inline list cp_date_range(date start, date end, str freq, bool return_intervals=False, bool include_partial_ranges=False):
     # Replacement for pandas.date_range()
     # Supports days, weeks, months, quarters, semesters, years (freq in [D, W, ME, QE, SE, YE])
     # If return_intervals is True, splits the respective period in intervals defined by freq
     # and returns the intervals.
-    return c_date_range(start=start, end=end, freq=freq, return_intervals=return_intervals)
+    return c_date_range(start=start, end=end, freq=freq, return_intervals=return_intervals, include_partial_ranges=include_partial_ranges)
 # -----------------------------------------------------------------------------
