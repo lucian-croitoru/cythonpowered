@@ -1,5 +1,13 @@
 # CHANGELOG
 
+
+### 0.2.3 - 2026-03-15
+- Major performance improvement for `dateutil.date.tostring`
+- `dateutil.date.offset` now supports days, weeks, months and years as parameters
+- Added the `dateutil.date.increment` function (fast date incrementation by 1 day)
+- Added the `deteutil.date.date_range` function, similar to `pandas.date_range`
+- Dropped support for Python 3.8
+
 ### 0.2.2 - 2026-02-23
 - Update project metadata
 

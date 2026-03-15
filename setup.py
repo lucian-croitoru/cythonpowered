@@ -13,12 +13,12 @@ py_ver = python_version[0]
 py_subver = python_version[1]
 if py_ver != 3:
     raise PythonVersionError(f"Python 3 required. Installed version is {py_ver}")
-if py_subver not in range(8, 15):
-    raise PythonVersionError("Setup requires Python >=3.8,<3.15")
+if py_subver not in range(9, 15):
+    raise PythonVersionError("Setup requires Python >=3.9,<3.15")
 
 
 NAME = "cythonpowered"
-VERSION = "0.2.2"
+VERSION = "0.2.3"
 LICENSE = "GNU GPLv3"
 DESCRIPTION = "Cython-powered replacements for popular Python functions. And more."
 AUTHOR = "Lucian Croitoru"
@@ -33,7 +33,6 @@ CLASSIFIERS = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: Unix",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -111,7 +110,7 @@ setup(
     ],
     keywords=KEYWORDS,
     classifiers=CLASSIFIERS,
-    python_requires=">=3.8,<3.15",
+    python_requires=">=3.9,<3.15",
     ext_modules=cythonize(module_list=cython_module_list, language_level="3"),
     package_data={"": ["*.pyx"]},
     include_package_data=True,

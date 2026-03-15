@@ -2,6 +2,13 @@ import time
 from functools import lru_cache
 import datetime
 
+from cpython.unicode cimport (
+    PyUnicode_New,
+    PyUnicode_DATA,
+    PyUnicode_WRITE,
+    PyUnicode_1BYTE_KIND
+)
+
 cdef unsigned int TZ_OFFSET = int(datetime.datetime.now(datetime.timezone.utc).astimezone().utcoffset().total_seconds())
 
 # -----------------------------------------------------------------------------
@@ -48,8 +55,16 @@ cdef class date:
     cpdef toordinal(self):
         return c_toordinal(self)
     
-    cpdef offset(self, int days=0):
-        return c_offset(self, days=days)
+    cpdef offset(self, short years=0, short months=0, short weeks=0, short days=0):
+        return c_offset(self, years=years, months=months, weeks=weeks, days=days)
+    
+    cpdef increment(self):
+        return c_increment(self)
+    
+    @staticmethod
+    def date_range(date start, date end, str freq="D"):
+        return cp_date_range(start=start, end=end, freq=freq)
+
 # -----------------------------------------------------------------------------
 
 
@@ -100,7 +115,7 @@ cpdef inline tuple cp_monthrange(unsigned short year, unsigned char month):
 # -----------------------------------------------------------------------------
 
 
-# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 cdef inline date c_fromstring(str yyyy_mm_dd):
     cdef unsigned short year = int(yyyy_mm_dd[0:4])
     cdef unsigned char month = int(yyyy_mm_dd[5:7])
@@ -111,21 +126,33 @@ cpdef inline date cp_fromstring(str yyyy_mm_dd):
     # Given a string like yyyy-mm-dd (or with any separator), returns a date
     # Replacement for datetime.datetime.strptime(st,'%Y-%m-%d').date()
     return c_fromstring(yyyy_mm_dd)
-# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
-# -----------------------------------------------------------------------
-cdef inline str c_tostring(date date, str separator = "-"):
-# Returns a date string similar to datetime.date().strftime('%Y-%m-%d')
-    cdef str datestr = str(date.year) + separator
-    if date.month < 10:
-        datestr += '0'
-    datestr += str(date.month) + separator
-    if date.day < 10:
-        datestr += '0'
-    datestr += str(date.day)
-    return datestr
-# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+cdef inline str c_tostring(date d, str separator="-"):
+    # Returns a date string similar to datetime.date().strftime('%Y-%m-%d')
+    # Builds the string directly in C, avoids Python string conversions
+    cdef unsigned short y = d.year
+    cdef unsigned char m = d.month
+    cdef unsigned char day = d.day
+
+    cdef object s = PyUnicode_New(10, 127)
+    cdef void* data = PyUnicode_DATA(s)
+
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 0, 48 + y // 1000)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 1, 48 + (y // 100) % 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 2, 48 + (y // 10) % 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 3, 48 + y % 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 4, separator)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 5, 48 + m // 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 6, 48 + m % 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 7, separator)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 8, 48 + day // 10)
+    PyUnicode_WRITE(PyUnicode_1BYTE_KIND, data, 9, 48 + day % 10)
+
+    return <str>s
+# -----------------------------------------------------------------------------
 
 
 # -----------------------------------------------------------------------------
@@ -217,12 +244,162 @@ cdef inline unsigned int c_toordinal(date date):
 
 
 # -----------------------------------------------------------------------------
-cdef inline date c_offset(date date, int days=0):
-    # Replacement for datetime.date() +/- datetime.timedelta()"
-    if days == 0:
-        return date
+cdef inline date c_offset(date date, short years=0, short months=0, short weeks=0, short days=0):
+    # Replacement for datetime.date() +/- datetime.timedelta()
+    # Supports extra arguments: `years` and `months`
+    cdef unsigned char[12] month_lengths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    cdef unsigned int ordinal
+    cdef int days_offset = weeks * 7 + days
 
-    cdef unsigned int ordinal = c_toordinal(date)
-    ordinal += days
-    return c_fromordinal(ordinal)
+    if years != 0 or months != 0:
+        date.year = date.year + years + months // 12
+        date.month = date.month + months % 12
+        if c_isleap(date.year):
+            month_lengths[1] = 29
+        if date.day > month_lengths[date.month-1]:
+            date.day = month_lengths[date.month-1]
+    
+    if days_offset != 0:
+        ordinal = c_toordinal(date) + days_offset
+        return c_fromordinal(ordinal)
+    
+    return date
+# -----------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
+cdef inline date c_increment(date input_date):
+    # Adds one day to a given date, without using fromordinal() or toordinal()
+    # Intended as a fast alternative to date.offset() for this special use case
+    cdef date newdate = date(input_date.year, input_date.month, input_date.day)
+    cdef unsigned char mr = c_monthrange(newdate.year, newdate.month)[1]
+    
+    newdate.day += 1
+    if newdate.day <= mr:
+        return newdate
+    else:
+        newdate.day = 1
+        newdate.month += 1
+        if newdate.month > 12:
+            newdate.year += 1
+            newdate.month = 1
+        return newdate
+# -----------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
+cdef inline list c_date_range(date start, date end, str freq="D"):
+    cdef list period_ends = []
+    cdef unsigned int i
+    cdef str d
+    cdef date dt
+    cdef int startnum, endnum
+    cdef date period_end = date(start.year, start.month, start.day)
+    cdef date period_start = date(start.year, start.month, start.day)
+
+    ### freq means days
+    if freq == "D":
+        startnum = start.toordinal()
+        endnum = end.toordinal()
+        period_ends = [start]
+
+        for i in range(1, endnum - startnum + 1):
+            period_end = c_increment(period_end)
+            period_ends.append(period_end)
+        period_ends = [dt.tostring() for dt in period_ends]
+        return period_ends
+
+
+    cdef unsigned int edatenum = end.toordinal()
+    cdef unsigned int pendnum
+    cdef unsigned int length
+
+
+    ### freq means weeks
+    if freq == "W":    
+        while True:
+            period_end = period_start.offset(days = 6 - period_start.weekday())
+            
+            pendnum = period_end.toordinal()
+            
+            if pendnum <= edatenum:
+                period_ends.append(period_end)
+                period_start = c_increment(period_end)
+            else:
+                break
+
+
+    ### freq means months
+    if freq == "ME":
+        while True:
+            period_end = date(period_start.year, period_start.month, c_monthrange(period_start.year, period_start.month)[1])
+            
+            pendnum = period_end.toordinal()
+            
+            if pendnum <= edatenum:
+                period_ends.append(period_end)
+                period_start = c_increment(period_end)
+            else:
+                break
+
+
+    ### freq means quarters
+    if freq == "QE":     
+        while True:
+            if period_start.month >= 10:
+                period_end = date(period_start.year, 12, 31)
+            if period_start.month >= 7 and period_start.month <= 9:
+                period_end = date(period_start.year, 9, 30)
+            if period_start.month >= 4 and period_start.month <= 6:
+                period_end = date(period_start.year, 6, 30)
+            if period_start.month <= 3:
+                period_end = date(period_start.year, 3, 31)
+
+            pendnum = period_end.toordinal()
+            
+            if pendnum <= edatenum:
+                period_ends.append(period_end)
+                period_start = c_increment(period_end)
+            else:
+                break
+
+
+    ### freq means semesters
+    if freq == "SE": 
+        while True:
+            if period_start.month >= 7:
+                period_end = date(period_start.year, 12, 31)
+            else:
+                period_end = date(period_start.year, 6, 30)
+            
+            pendnum = period_end.toordinal()
+            
+            if pendnum <= edatenum:
+                period_ends.append(period_end)
+                period_start = c_increment(period_end)
+            else:
+                break
+
+
+    ### freq means years
+    if freq == "YE":
+        while True:
+            period_end = date(period_start.year, 12, 31)
+
+            pendnum = period_end.toordinal()
+            
+            if pendnum <= edatenum:
+                period_ends.append(period_end)
+                period_start = c_increment(period_end)
+            else:
+                break
+
+    length = len(period_ends)
+    return [period_ends[i].tostring() for i in range(0, length)]
+
+
+cpdef inline list cp_date_range(date start, date end, str freq="D"):
+    # Replacement for pandas.date_range()
+    # Supports days, weeks, months, quarters, semesters, years (freq in [D, W, ME, QE, SE, YE])
+    return c_date_range(start=start, end=end, freq=freq)
 # -----------------------------------------------------------------------------

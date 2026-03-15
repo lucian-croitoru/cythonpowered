@@ -9,6 +9,7 @@ packaging==24.0
 prettytable>=3.0.0
 psutil>=6.0.0
 py-cpuinfo>=9.0.0
+pandas>=2.0.0
 
 # Testing
 pytest>=8.0.0
