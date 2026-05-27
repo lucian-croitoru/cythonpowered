@@ -1,2 +1,2 @@
-VERSION = "0.2.3"
-MODULES = ["random", "dateutil"]
+VERSION = "0.3.0"
+MODULES = ["random", "dateutil", "textparse"]

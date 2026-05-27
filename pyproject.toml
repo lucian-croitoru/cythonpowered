@@ -4,16 +4,15 @@ requires = [
     "wheel>=0.40.0",
     "Cython>=3.0.0",
     "packaging>=24.0",
-    "more-itertools>=10.0.0",
-]
+ ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "cythonpowered"
-version = "0.2.3"
+version = "0.3.0"
 description = "Cython-powered replacements for popular Python functions. And more."
 readme = "README.md"
-license = {text = "GNU GPLv3"}
+license = {text = "MIT"}
 authors = [
     {name = "Lucian Croitoru"},
 ]
@@ -24,7 +23,6 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: POSIX",
     "Operating System :: POSIX :: Linux",
-    "Operating System :: Unix",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -36,15 +34,18 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 requires-python = ">=3.9,<3.15"
-dependencies = [
-    "psutil>=6.0.0",
-    "py-cpuinfo>=9.0.0",
-    "prettytable>=3.0.0",
-    "pandas>=2.0.0"
-]
+dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/lucian-croitoru/cythonpowered"
+
+[project.optional-dependencies]
+benchmark = [
+    "pandas>=2.0.0",
+    "psutil>=6.0.0",
+    "py-cpuinfo>=9.0.0",
+    "prettytable>=3.0.0",
+]
 
 [project.scripts]
 cythonpowered = "utils.main:main"
@@ -54,6 +55,7 @@ packages = [
     "cythonpowered",
     "cythonpowered.random",
     "cythonpowered.dateutil",
+    "cythonpowered.textparse",
     "utils",
     "utils.benchmark",
     "utils.definitions",
