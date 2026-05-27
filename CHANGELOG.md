@@ -1,5 +1,11 @@
 # CHANGELOG
 
+### 0.3.0 - 2026-05-28
+- Added the `textparse` module
+- License changed from `GPL-3.0` to `MIT`
+- Benchmark-only dependencies moved to optional `[benchmark]` extra
+- `date.today()` now correctly uses `time.localtime()` — timezone changes after import no longer affect results
+- `date` class now has `__repr__`, `__str__`, `__eq__`, `__hash__` for better interoperability with `datetime.date`
 
 ### 0.2.3 - 2026-03-15
 - Major performance improvement for `dateutil.date.tostring`
