@@ -1,15 +1,14 @@
-from cpuinfo import get_cpu_info
 import platform
-import psutil
 from typing import Optional
 
 from utils.benchmark._random import RandomBenchmark
 from utils.benchmark._dateutil import DateutilBenchmark
+from utils.benchmark._textparse import TextparseBenchmark
 
 
 class BenchmarkRunner:
 
-    MODULE_BENCHMARKS = [RandomBenchmark, DateutilBenchmark]
+    MODULE_BENCHMARKS = [RandomBenchmark, DateutilBenchmark, TextparseBenchmark]
 
     def __init__(self) -> None:
         sys_info = self.get_system_info()
@@ -22,6 +21,9 @@ class BenchmarkRunner:
         print(msg, end=end, flush=True)
 
     def get_system_info(self) -> dict:
+        # Lazy imports — only loaded when benchmark runs
+        from cpuinfo import get_cpu_info  # noqa: F401
+        import psutil  # noqa: F401
 
         # CPU info
         default_unsupported_param = "Unsupported parameter for this system"

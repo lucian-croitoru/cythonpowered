@@ -7,18 +7,47 @@ from cythonpowered import VERSION
 
 
 TITLE = rf"""
-               _   _                                                      _ 
-     ___ _   _| |_| |__   ___  _ __  _ __   _____      _____ _ __ ___  __| |
-    / __| | | | __| '_ \ / _ \| '_ \| '_ \ / _ \ \ /\ / / _ \ '__/ _ \/ _` |
-   | (__| |_| | |_| | | | (_) | | | | |_) | (_) \ V  V /  __/ | |  __/ (_| |
-    \___|\__, |\__|_| |_|\___/|_| |_| .__/ \___/ \_/\_/ \___|_|  \___|\__,_|
-         |___/                      |_|                                     
-                                                                  ver. {VERSION}
+                _   _                                                      _
+      ___ _   _| |_| |__   ___  _ __  _ __   _____      _____ _ __ ___  __| |
+     / __| | | | __| '_ \ / _ \| '_ \| '_ \ / _ \ \ /\ / / _ \ '__/ _ \/ _` |
+    | (__| |_| | |_| | | | (_) | | | | |_) | (_) \ V  V /  __/ | |  __/ (_| |
+     \___|\__, |\__|_| |_|\___/|_| |_| .__/ \___/ \_/\_/ \___|_|  \___|\__,_|
+           |___/                      |_|
+                                                                   v{VERSION}
 """
+
+
+def _check_benchmark_deps():
+    """Check for optional benchmark dependencies. Exit gracefully if missing."""
+    missing = []
+    try:
+        import pandas  # noqa: F401
+    except ImportError:
+        missing.append("pandas")
+    try:
+        import psutil  # noqa: F401
+    except ImportError:
+        missing.append("psutil")
+    try:
+        import cpuinfo  # noqa: F401
+    except ImportError:
+        missing.append("py-cpuinfo")
+    try:
+        from prettytable import PrettyTable  # noqa: F401
+    except ImportError:
+        missing.append("prettytable")
+
+    if missing:
+        print(
+            f"Benchmarking requires optional dependencies. "
+            f"Run 'pip install cythonpowered[benchmark]' to enable benchmarking."
+        )
+        sys.exit(0)
 
 
 def run_benchmark():
     print(TITLE, flush=True)
+    _check_benchmark_deps()
     BenchmarkRunner()
 
 

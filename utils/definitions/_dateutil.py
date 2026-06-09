@@ -2,7 +2,12 @@ from utils.definitions._base import BaseFunctionDefinition, REPLACEMENT
 import datetime as py_datetime
 import calendar as py_calendar
 import cythonpowered.dateutil as cy_dateutil
-import pandas
+
+# Lazy pandas import — only loaded when unit tests or benchmark runs (which checks deps first)
+try:
+    import pandas
+except ImportError:
+    pandas = None
 
 
 def py_offset(date, days=0, weeks=0):
@@ -104,7 +109,7 @@ class PythonToordinalDef(BaseFunctionDefinition):
 
 class CythonToordinalDef(BaseFunctionDefinition):
     function = cy_dateutil.date.toordinal
-    reference = "cythonpowered.dateutil.date().toordinal()"
+    reference = "cythonpowered.dateutil.date.toordinal()"
     usage = f"{REPLACEMENT}, uses cythonpowered date object"
 
 
@@ -131,7 +136,10 @@ class CythonIncrementDef(BaseFunctionDefinition):
 
 
 class PythonDaterangeDef(BaseFunctionDefinition):
-    function = pandas.date_range
+    if pandas is not None:
+        function = pandas.date_range
+    else:
+        function = None  # Will cause a clear error if benchmark runs without pandas
     reference = "pandas.date_range()"
 
 
