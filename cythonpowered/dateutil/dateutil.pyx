@@ -1,5 +1,4 @@
 import time
-from functools import lru_cache
 import datetime
 
 from cpython.unicode cimport (
@@ -8,8 +7,6 @@ from cpython.unicode cimport (
     PyUnicode_WRITE,
     PyUnicode_1BYTE_KIND
 )
-
-cdef unsigned int TZ_OFFSET = int(datetime.datetime.now(datetime.timezone.utc).astimezone().utcoffset().total_seconds())
 
 # -----------------------------------------------------------------------------
 cdef class date:
@@ -22,6 +19,31 @@ cdef class date:
         self.year = year
         self.month = month
         self.day = day
+
+    def __repr__(self):
+        # Returns date(year, month, day) format, matching datetime.date
+        return f"date({self.year}, {self.month}, {self.day})"
+
+    def __str__(self):
+        # Returns "YYYY-MM-DD" format, matching date.tostring()
+        return self.tostring()
+
+    def __eq__(self, other):
+        # Supports comparison with both cythonpowered date and datetime.date
+        if isinstance(other, date):
+            return (self.year == other.year and
+                    self.month == other.month and
+                    self.day == other.day)
+        if isinstance(other, datetime.date):
+            return (self.year == other.year and
+                    self.month == other.month and
+                    self.day == other.day)
+        return NotImplemented
+
+    def __hash__(self):
+        # Must match datetime.date hash to satisfy Python's hash/equality contract
+        # since __eq__ compares with datetime.date instances
+        return hash(datetime.date(self.year, self.month, self.day))
     
     @staticmethod
     def today():
@@ -69,22 +91,12 @@ cdef class date:
 
 
 # -----------------------------------------------------------------------------
-cdef inline unsigned int c_today_seconds():
-    return (int(time.time()) + TZ_OFFSET) // 86400 * 86401 - TZ_OFFSET -1
-
-@lru_cache(maxsize=1)
-def c_cached_today(unsigned int s):
-    cdef d = time.localtime(s)
-    return date(d.tm_year, d.tm_mon, d.tm_mday)
-
-cdef inline date c_today():
-    cdef unsigned int s = c_today_seconds()
-    return c_cached_today(s)
-
 cpdef inline date cp_today():
-    # Multi-function solution to get the current date
     # Replacement for datetime.date.today()
-    return c_today()
+    # Uses time.localtime() which always returns current local time
+    # No cached offset — correct even if timezone changes after import
+    cdef object st = time.localtime()
+    return date(st.tm_year, st.tm_mon, st.tm_mday)
 # -----------------------------------------------------------------------------
 
 
