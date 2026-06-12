@@ -5,7 +5,6 @@ from utils.benchmark.benchmark_runner import BenchmarkRunner
 from utils.definitions.list_functions import AllFunctionDefinitionPrinter
 from cythonpowered import VERSION
 
-
 TITLE = rf"""
                 _   _                                                      _
       ___ _   _| |_| |__   ___  _ __  _ __   _____      _____ _ __ ___  __| |
@@ -36,11 +35,15 @@ def _check_benchmark_deps():
         from prettytable import PrettyTable  # noqa: F401
     except ImportError:
         missing.append("prettytable")
+    try:
+        import bs4  # noqa: F401
+    except ImportError:
+        missing.append("beautifulsoup4")
 
     if missing:
         print(
-            f"Benchmarking requires optional dependencies. "
-            f"Run 'pip install cythonpowered[benchmark]' to enable benchmarking."
+            f"Benchmarking requires optional dependencies: {missing}"
+            f"Run 'pip install cythonpowered[utils]' to enable benchmarking."
         )
         sys.exit(0)
 
