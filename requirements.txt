@@ -9,11 +9,10 @@ prettytable>=3.0.0
 psutil>=6.0.0
 py-cpuinfo>=9.0.0
 pandas>=2.0.0
+beautifulsoup4>=4.0.0
 
 # Testing
 pytest>=8.0.0
-beautifulsoup4>=4.12.0
-html5lib>=1.1
 
 # Publishing to pypi
 twine>=5.0.0

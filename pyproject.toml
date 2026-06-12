@@ -16,7 +16,7 @@ license = {text = "MIT"}
 authors = [
     {name = "Lucian Croitoru"},
 ]
-keywords = ["python", "cython", "performance", "random", "datetime", "dateutil"]
+keywords = ["python", "cython", "performance", "random", "datetime", "dateutil", "textparse"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -40,11 +40,12 @@ dependencies = []
 Homepage = "https://github.com/lucian-croitoru/cythonpowered"
 
 [project.optional-dependencies]
-benchmark = [
+utils = [
     "pandas>=2.0.0",
     "psutil>=6.0.0",
     "py-cpuinfo>=9.0.0",
     "prettytable>=3.0.0",
+    "beautifulsoup4>=4.0.0"
 ]
 
 [project.scripts]
