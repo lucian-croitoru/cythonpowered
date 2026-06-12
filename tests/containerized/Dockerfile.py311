@@ -16,7 +16,7 @@ COPY . .
 
 # Install the package from source with benchmark dependencies
 # pip will automatically install setup_requires (build dependencies) and compile Cython modules
-RUN pip install --no-cache-dir .[benchmark]
+RUN pip install --no-cache-dir .[utils]
 
 # Verify installation
 RUN python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed successfully')"
