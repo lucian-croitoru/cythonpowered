@@ -2,15 +2,23 @@ from utils.definitions._base import BaseFunctionDefinition, REPLACEMENT
 import re as py_re
 import cythonpowered.textparse as cy_textparse
 from bs4 import BeautifulSoup
+import lxml.html
+from lxml import etree
 
 
 # ------------------------------------------------------------------
-def py_get_text(html: str, strip: bool = False):
-    return BeautifulSoup(html, "html.parser").get_text(strip=strip)
+def py_get_text_bs4(html: str, strip: bool = False):
+    return BeautifulSoup(html, "lxml").get_text(strip=strip)
+
+
+def py_get_text_lxml(html: str):
+    doc = lxml.html.fromstring(html)
+    etree.strip_elements(doc, "script", "style", with_tail=False)
+    return doc.text_content()
 
 
 def py_get_attr(html: str, tag: str, attr: str):
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(html, "lxml")
     element = soup.find(tag)
     if element:
         return element.get(attr)
@@ -34,9 +42,14 @@ def py_get_mac_addrs(text):
 
 
 # ------------------------------------------------------------------
-class PythonGetTextDef(BaseFunctionDefinition):
-    function = py_get_text
+class PythonGetTextDefBs4(BaseFunctionDefinition):
+    function = py_get_text_bs4
     reference = "BeautifulSoup().get_text()"
+
+
+class PythonGetTextDefLxml(BaseFunctionDefinition):
+    function = py_get_text_lxml
+    reference = "lxml.html.fromstring().text_content()"
 
 
 class CythonGetTextDef(BaseFunctionDefinition):
@@ -91,7 +104,7 @@ class CythonExtractMacAddrsDef(BaseFunctionDefinition):
 
 
 TEXTPARSE_DEFINITION_PAIRS = [
-    [PythonGetTextDef, CythonGetTextDef],
+    [PythonGetTextDefBs4, CythonGetTextDef],
     [PythonGetAttrDef, CythonGetAttrDef],
     [PythonExtractIpsDef, CythonExtractIpsDef],
     [PythonExtractEmailsDef, CythonExtractEmailsDef],

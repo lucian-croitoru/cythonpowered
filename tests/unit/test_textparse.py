@@ -1,7 +1,8 @@
 import cythonpowered.textparse as tp
 import pytest
 from utils.definitions._textparse import (
-    py_get_text,
+    py_get_text_bs4,
+    py_get_text_lxml,
     py_get_attr,
     py_get_ips,
     py_get_emails,
@@ -22,20 +23,26 @@ TEST_HTML = [
 
 @pytest.mark.parametrize("html", TEST_HTML)
 def test_html_get_text_vs_bs4_single(html):
-    expected = py_get_text(html)
+    expected_bs4 = py_get_text_bs4(html)
+    expected_lxml = py_get_text_lxml(html)
     actual = tp.html.get_text(html)
-    assert actual == expected
-    expected_stripped = py_get_text(html, strip=True)
+    assert actual == expected_bs4
+    assert actual == expected_lxml
+
+    expected_stripped = py_get_text_bs4(html, strip=True)
     actual_stripped = tp.html.get_text(html, strip=True)
     assert actual_stripped == expected_stripped
 
 
 def test_html_get_text_vs_bs4_full():
     html = "".join(TEST_HTML)
-    expected = py_get_text(html)
+    expected_bs4 = py_get_text_bs4(html)
+    expected_lxml = py_get_text_lxml(html)
     actual = tp.html.get_text(html)
-    assert actual == expected
-    expected_stripped = py_get_text(html, strip=True)
+    assert actual == expected_bs4
+    assert actual == expected_lxml
+
+    expected_stripped = py_get_text_bs4(html, strip=True)
     actual_stripped = tp.html.get_text(html, strip=True)
     assert actual_stripped == expected_stripped
 

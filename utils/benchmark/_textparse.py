@@ -3,7 +3,8 @@ from utils.benchmark._base import (
     BaseModuleBenchmark,
 )
 from utils.definitions._textparse import (
-    PythonGetTextDef,
+    PythonGetTextDefBs4,
+    PythonGetTextDefLxml,
     CythonGetTextDef,
     PythonGetAttrDef,
     CythonGetAttrDef,
@@ -51,12 +52,20 @@ MAC_TEXTS = " ".join(
 )
 
 
-class GetTextBenchmarkDefinition(BaseFunctionBenchmark):
-    python_function = PythonGetTextDef
+class GetTextBenchmarkDefinitionBs4(BaseFunctionBenchmark):
+    python_function = PythonGetTextDefBs4
     cython_function = CythonGetTextDef
     python_args = [HTML]
     cython_args = [HTML]
     kwargs = {"strip": False}
+    runs = [100, 1000, 10000]
+
+
+class GetTextBenchmarkDefinitionLxml(BaseFunctionBenchmark):
+    python_function = PythonGetTextDefLxml
+    cython_function = CythonGetTextDef
+    python_args = [HTML]
+    cython_args = [HTML]
     runs = [100, 1000, 10000]
 
 
@@ -95,7 +104,8 @@ class ExtractMacAddrsBenchmarkDefinition(BaseFunctionBenchmark):
 class TextparseBenchmark(BaseModuleBenchmark):
     MODULE = "textparse"
     BENCHMARKS = [
-        GetTextBenchmarkDefinition,
+        GetTextBenchmarkDefinitionBs4,
+        GetTextBenchmarkDefinitionLxml,
         GetAttrBenchmarkDefinition,
         ExtractIpsBenchmarkDefinition,
         ExtractEmailsBenchmarkDefinition,
