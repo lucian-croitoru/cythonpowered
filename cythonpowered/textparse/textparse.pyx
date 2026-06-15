@@ -4,8 +4,15 @@
 # -----------------------------------------------------------------------------
 
 
+class html:
+
+    @staticmethod
+    def get_text(html:str, strip:bool=False):
+        return html_get_text(html, strip=strip)
+
+
 # -----------------------------------------------------------------------------
-cdef inline list _strip_tags(str html, bint strip=False):
+cdef inline list _html_strip_tags(str html, bint strip=False):
     """
     Removes all HTML tags from a string and returns a list of strings,
     corresponding to the text content of each tag.
@@ -107,12 +114,12 @@ cdef inline list _strip_tags(str html, bint strip=False):
 
 
 # -----------------------------------------------------------------------------
-cpdef inline str get_text(str html, bint strip=False):
+cpdef inline str html_get_text(str html, bint strip=False):
     """
     Extract text from HTML, optionally stripping whitespace per line.
     Replacement for: BeautifulSoup(html).get_text().
     """
-    cdef list text = _strip_tags(html, strip=strip)
+    cdef list text = _html_strip_tags(html, strip=strip)
     cdef str part
     if strip:
         return ''.join([part.strip() for part in text])

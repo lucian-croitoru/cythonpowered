@@ -23,20 +23,20 @@ TEST_HTML = [
 @pytest.mark.parametrize("html", TEST_HTML)
 def test_html_get_text_vs_bs4_single(html):
     expected = py_get_text(html)
-    actual = tp.get_text(html)
+    actual = tp.html.get_text(html)
     assert actual == expected
     expected_stripped = py_get_text(html, strip=True)
-    actual_stripped = tp.get_text(html, strip=True)
+    actual_stripped = tp.html.get_text(html, strip=True)
     assert actual_stripped == expected_stripped
 
 
 def test_html_get_text_vs_bs4_full():
     html = "".join(TEST_HTML)
     expected = py_get_text(html)
-    actual = tp.get_text(html)
+    actual = tp.html.get_text(html)
     assert actual == expected
     expected_stripped = py_get_text(html, strip=True)
-    actual_stripped = tp.get_text(html, strip=True)
+    actual_stripped = tp.html.get_text(html, strip=True)
     assert actual_stripped == expected_stripped
 
 

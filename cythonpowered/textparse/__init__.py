@@ -1,5 +1,5 @@
 from cythonpowered.textparse.textparse import (
-    get_text,
+    html,
     get_attr,
     get_ips,
     get_emails,
@@ -7,7 +7,7 @@ from cythonpowered.textparse.textparse import (
 )
 
 __all__ = [
-    "get_text",
+    "html",
     "get_attr",
     "get_ips",
     "get_emails",

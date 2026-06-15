@@ -6,11 +6,11 @@ from bs4 import BeautifulSoup
 
 # ------------------------------------------------------------------
 def py_get_text(html: str, strip: bool = False):
-    return BeautifulSoup(html, "lxml").get_text(strip=strip)
+    return BeautifulSoup(html, "html.parser").get_text(strip=strip)
 
 
 def py_get_attr(html: str, tag: str, attr: str):
-    soup = BeautifulSoup(html, "lxml")
+    soup = BeautifulSoup(html, "html.parser")
     element = soup.find(tag)
     if element:
         return element.get(attr)
@@ -40,8 +40,8 @@ class PythonGetTextDef(BaseFunctionDefinition):
 
 
 class CythonGetTextDef(BaseFunctionDefinition):
-    function = cy_textparse.get_text
-    reference = "cythonpowered.textparse.get_text()"
+    function = cy_textparse.html.get_text
+    reference = "cythonpowered.textparse.html.get_text()"
     usage = REPLACEMENT
 
 
