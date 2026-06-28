@@ -3,9 +3,15 @@ from utils.benchmark._base import (
     BaseModuleBenchmark,
 )
 from utils.definitions._textparse import (
-    PythonGetTextDefBs4,
-    PythonGetTextDefLxml,
-    CythonGetTextDef,
+    PythonHTMLGetTextDefBs4,
+    PythonHTMLGetTextDefLxml,
+    CythonHTMLGetTextDef,
+    PythonHTMLFindDefBs4,
+    PythonHTMLFindDefLxml,
+    CythonHTMLFindDef,
+    PythonHTMLFindallDefBs4,
+    PythonHTMLFindallDefLxml,
+    CythonHTMLFindallDef,
     PythonGetAttrDef,
     CythonGetAttrDef,
     PythonExtractIpsDef,
@@ -17,17 +23,19 @@ from utils.definitions._textparse import (
 )
 
 HTML = (
+    "<body>"
     "<div class='container'><h1>Title</h1>"
     "<p>Paragraph with <a href='#'>link</a></p>"
     "<!-- comment -->"
-    "<script>alert('xss')</script>"
     "<style>.hidden { display: none; }</style>"
     "<p>More content <b>bold</b> and <i>italic</i></p>"
     '<img src="image.jpg" alt="An image" class="responsive"/>'
     "<ul><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>"
     "<table><tr><td>Cell 1</td><td>Cell 2</td></tr></table>"
     "<p>Final paragraph with <span class='highlight'>highlighted</span> text</p>"
+    "<script>alert('xss')</script>"
     "<div class='test-class' data-id='12345' data-value='hello'>content</div>"
+    "</body>"
 )
 
 IP_TEXTS = " ".join(
@@ -52,20 +60,52 @@ MAC_TEXTS = " ".join(
 )
 
 
-class GetTextBenchmarkDefinitionBs4(BaseFunctionBenchmark):
-    python_function = PythonGetTextDefBs4
-    cython_function = CythonGetTextDef
+class HTMLGetTextBenchmarkDefinitionBs4(BaseFunctionBenchmark):
+    python_function = PythonHTMLGetTextDefBs4
+    cython_function = CythonHTMLGetTextDef
     python_args = [HTML]
     cython_args = [HTML]
     kwargs = {"strip": False}
     runs = [100, 1000, 10000]
 
 
-class GetTextBenchmarkDefinitionLxml(BaseFunctionBenchmark):
-    python_function = PythonGetTextDefLxml
-    cython_function = CythonGetTextDef
+class HTMLGetTextBenchmarkDefinitionLxml(BaseFunctionBenchmark):
+    python_function = PythonHTMLGetTextDefLxml
+    cython_function = CythonHTMLGetTextDef
     python_args = [HTML]
     cython_args = [HTML]
+    runs = [100, 1000, 10000]
+
+
+class HTMLFindBenchmarkDefinitionBs4(BaseFunctionBenchmark):
+    python_function = PythonHTMLFindDefBs4
+    cython_function = CythonHTMLFindDef
+    python_args = [HTML, "script"]
+    cython_args = [HTML, "script"]
+    runs = [100, 1000, 10000]
+
+
+class HTMLFindBenchmarkDefinitionLxml(BaseFunctionBenchmark):
+    python_function = PythonHTMLFindDefLxml
+    cython_function = CythonHTMLFindDef
+    python_args = [HTML, "script"]
+    cython_args = [HTML, "script"]
+    runs = [100, 1000, 10000]
+
+
+class HTMLFindallBenchmarkDefinitionBs4(BaseFunctionBenchmark):
+    python_function = PythonHTMLFindallDefBs4
+    cython_function = CythonHTMLFindallDef
+    python_args = [HTML, "li"]
+    cython_args = [HTML, "li"]
+    runs = [100, 1000, 10000]
+
+
+class HTMLFindallBenchmarkDefinitionLxml(BaseFunctionBenchmark):
+    python_function = PythonHTMLFindallDefLxml
+    cython_function = CythonHTMLFindallDef
+    python_args = [HTML, "li"]
+    cython_args = [HTML, "li"]
     runs = [100, 1000, 10000]
 
 
@@ -104,8 +144,12 @@ class ExtractMacAddrsBenchmarkDefinition(BaseFunctionBenchmark):
 class TextparseBenchmark(BaseModuleBenchmark):
     MODULE = "textparse"
     BENCHMARKS = [
-        GetTextBenchmarkDefinitionBs4,
-        GetTextBenchmarkDefinitionLxml,
+        HTMLGetTextBenchmarkDefinitionBs4,
+        HTMLGetTextBenchmarkDefinitionLxml,
+        HTMLFindBenchmarkDefinitionBs4,
+        HTMLFindBenchmarkDefinitionLxml,
+        HTMLFindallBenchmarkDefinitionBs4,
+        HTMLFindallBenchmarkDefinitionLxml,
         GetAttrBenchmarkDefinition,
         ExtractIpsBenchmarkDefinition,
         ExtractEmailsBenchmarkDefinition,

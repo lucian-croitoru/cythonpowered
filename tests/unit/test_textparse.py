@@ -3,6 +3,10 @@ import pytest
 from utils.definitions._textparse import (
     py_get_text_bs4,
     py_get_text_lxml,
+    py_find_bs4,
+    py_findall_bs4,
+    py_find_lxml,
+    py_findall_lxml,
     py_get_attr,
     py_get_ips,
     py_get_emails,
@@ -45,6 +49,73 @@ def test_html_get_text_vs_bs4_full():
     expected_stripped = py_get_text_bs4(html, strip=True)
     actual_stripped = tp.html.get_text(html, strip=True)
     assert actual_stripped == expected_stripped
+
+
+@pytest.mark.parametrize("tag", ["p", "div", "script", "ul", "li"])
+def test_html_find_recursive(tag):
+    html = f'<body>{"".join(TEST_HTML)}</body>'
+
+    # Normalize all quotes, because bs4 does this internally. The test is meant to determine tag scraping accuracy.
+    expected_bs4 = py_find_bs4(html, tag, recursive=True)
+    if expected_bs4 is not None:
+        expected_bs4 = expected_bs4.replace("'", '"')
+
+    actual = tp.html.find(html, tag, recursive=True)
+    if actual is not None:
+        actual = actual.replace("'", '"')
+
+    html = f'<html><body>{"".join(TEST_HTML)}</body></html>'
+    expected_lxml = py_find_lxml(html, tag, recursive=True)
+    if expected_lxml is not None:
+        expected_lxml = expected_lxml.replace("'", '"')
+
+    assert actual == expected_bs4
+    assert actual == expected_lxml
+
+
+@pytest.mark.parametrize("tag", ["p", "div", "script", "ul", "li"])
+def test_html_find_non_recursive(tag):
+    html = f'<body>{"".join(TEST_HTML)}</body>'
+
+    # Normalize all quotes, because bs4 does this internally. The test is meant to determine tag scraping accuracy.
+    expected_bs4 = py_find_bs4(html, tag, recursive=False)
+    if expected_bs4 is not None:
+        expected_bs4 = expected_bs4.replace("'", '"')
+
+    actual = tp.html.find(html, tag, recursive=False)
+    if actual is not None:
+        actual = actual.replace("'", '"')
+
+    html = f'<html><body>{"".join(TEST_HTML)}</body></html>'
+    expected_lxml = py_find_lxml(html, tag, recursive=False)
+    if expected_lxml is not None:
+        expected_lxml = expected_lxml.replace("'", '"')
+
+    assert actual == expected_bs4
+    assert actual == expected_lxml
+
+
+@pytest.mark.parametrize("tag", ["p", "div", "script", "ul", "li"])
+def test_html_findall_recursive(tag):
+    html = f'<body>{"".join(TEST_HTML)}</body>'
+
+    # Normalize all quotes, because bs4 does this internally. The test is meant to determine tag scraping accuracy.
+    expected_bs4 = py_findall_bs4(html, tag, recursive=True)
+    if expected_bs4:
+        expected_bs4 = [t.replace("'", '"') for t in expected_bs4]
+
+    actual = tp.html.find_all(html, tag, recursive=True)
+    if actual is not None:
+        actual = [t.replace("'", '"') for t in actual]
+
+    html = f'<html><body>{"".join(TEST_HTML)}</body></html>'
+    expected_lxml = py_findall_lxml(html, tag, recursive=True)
+    if expected_lxml:
+        expected_lxml = [t.replace("'", '"') for t in expected_lxml]
+
+    print(f"{actual} | {expected_bs4} | {expected_lxml}")
+    assert actual == expected_bs4
+    assert actual == expected_lxml
 
 
 TEST_TAGS = [

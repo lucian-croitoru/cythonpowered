@@ -3,12 +3,19 @@
 # Single-pass C scanning, no regex compilation, no backtracking
 # -----------------------------------------------------------------------------
 
-
 class html:
 
     @staticmethod
     def get_text(html:str, strip:bool=False):
         return html_get_text(html, strip=strip)
+
+    @staticmethod
+    def find(html: str, tag: str, recursive: bool=True):
+        return find_tag(html=html, tag=tag, find_all=False, recursive=recursive)
+
+    @staticmethod
+    def find_all(html: str, tag: str, recursive: bool=True):
+        return find_tag(html=html, tag=tag, find_all=True, recursive=recursive)
 
 
 # -----------------------------------------------------------------------------
@@ -234,6 +241,220 @@ cpdef inline object get_attr(str html, str tag, str attr):
 
     return None
 # -----------------------------------------------------------------------------
+
+
+
+# -----------------------------------------------------------------------------
+cdef inline bint is_space(char c):
+    return (
+        c == ' ' or
+        c == '\t' or
+        c == '\n' or
+        c == '\r'
+    )
+
+
+cdef inline bint tag_equals(
+    const char* html,
+    Py_ssize_t start,
+    Py_ssize_t end,
+    const char* target,
+    Py_ssize_t target_len
+):
+    cdef Py_ssize_t n
+
+    n = end - start
+
+    if n != target_len:
+        return False
+
+    return (
+        html[start:start+n] ==
+        target[:target_len]
+    )
+
+
+cdef bint id_matches(
+    const char* html,
+    Py_ssize_t attr_start,
+    Py_ssize_t attr_end,
+    const char* wanted_id,
+    Py_ssize_t wanted_len
+):
+    cdef Py_ssize_t i = attr_start
+    cdef Py_ssize_t value_start
+    cdef Py_ssize_t value_end
+    cdef char quote
+
+    while i < attr_end - 2:
+
+        if (
+            html[i] == 'i' and
+            html[i+1] == 'd'
+        ):
+            i += 2
+
+            while i < attr_end and is_space(html[i]):
+                i += 1
+
+            if i >= attr_end or html[i] != '=':
+                continue
+
+            i += 1
+
+            while i < attr_end and is_space(html[i]):
+                i += 1
+
+            quote = html[i]
+
+            if quote not in (b'"'[0], b"'"[0]):
+                continue
+
+            value_start = i + 1
+
+            i += 1
+
+            while i < attr_end and html[i] != quote:
+                i += 1
+
+            value_end = i
+
+            if (
+                value_end - value_start ==
+                wanted_len
+            ):
+                if (
+                    html[value_start:value_end] ==
+                    wanted_id[:wanted_len]
+                ):
+                    return True
+
+        i += 1
+
+    return False
+
+
+from libc.string cimport memcmp
+from cpython.unicode cimport PyUnicode_AsUTF8AndSize
+
+cpdef inline find_tag(
+    str html,
+    str tag,
+    bint find_all=False,
+    bint recursive=True
+):
+    """
+    Fast HTML tag search.
+
+    Returns:
+        first matching tag string
+        OR list[str] if find_all=True
+        OR None
+    """
+
+    cdef:
+        Py_ssize_t n
+        const char* buf
+
+        const char* tag_ptr
+        Py_ssize_t tag_len
+
+        Py_ssize_t i = 0
+        Py_ssize_t j
+
+        Py_ssize_t open_start
+        Py_ssize_t open_end
+
+        Py_ssize_t name_start
+        Py_ssize_t name_end
+
+        Py_ssize_t depth = 0
+
+        bytes close_tag = b"</" + tag.encode() + b">"
+        const char* close_ptr = close_tag
+        Py_ssize_t close_len = len(close_tag)
+
+        list results = []
+
+    buf = PyUnicode_AsUTF8AndSize(html, &n)
+    tag_ptr = PyUnicode_AsUTF8AndSize(tag, &tag_len)
+
+    while i < n:
+
+        if buf[i] != '<':
+            i += 1
+            continue
+
+        # Closing tag
+        if i + 1 < n and buf[i + 1] == '/':
+
+            depth -= 1
+
+            while i < n and buf[i] != '>':
+                i += 1
+
+            i += 1
+            continue
+
+        open_start = i
+        i += 1
+
+        name_start = i
+
+        while (
+            i < n and
+            not is_space(buf[i]) and
+            buf[i] != '>'
+        ):
+            i += 1
+
+        name_end = i
+
+        while i < n and buf[i] != '>':
+            i += 1
+
+        open_end = i
+
+        if (
+            tag_equals(
+                buf,
+                name_start,
+                name_end,
+                tag_ptr,
+                tag_len
+            )
+            and
+            (recursive or depth == 0)
+        ):
+
+            j = open_end
+
+            while j + close_len <= n:
+
+                # Skip until next '<'
+                while j < n and buf[j] != '<':
+                    j += 1
+
+                if j + close_len > n:
+                    break
+
+                if memcmp(buf + j, close_ptr, close_len) == 0:
+
+                    if not find_all:
+                        return html[open_start:j + close_len]
+
+                    results.append(html[open_start:j + close_len])
+                    break
+
+                j += 1
+
+        depth += 1
+        i += 1
+
+    if find_all:
+        return [] if results is None else results
+
+    return None
 
 
 # -----------------------------------------------------------------------------

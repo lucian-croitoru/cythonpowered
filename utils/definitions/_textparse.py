@@ -17,6 +17,44 @@ def py_get_text_lxml(html: str):
     return doc.text_content()
 
 
+def py_find_bs4(html: str, tag: str, recursive: bool = True):
+    found = BeautifulSoup(html, "lxml").find(tag, recursive=recursive)
+    if found is not None:
+        return found.decode(formatter=None)
+    return found
+
+
+def py_findall_bs4(html: str, tag: str, recursive: bool = True):
+    found = BeautifulSoup(html, "lxml").find_all(tag, recursive=recursive)
+    if found:
+        return [tg.decode(formatter=None) for tg in found]
+    return found
+
+
+def py_find_lxml(html: str, tag: str, recursive: bool = True):
+    doc = lxml.html.fromstring(html)
+    pattern = ".//"
+    if recursive is False:
+        pattern = "./"
+
+    found = doc.find(f"{pattern}{tag}")
+    if found is not None:
+        return lxml.html.tostring(found, encoding="unicode")
+    return None
+
+
+def py_findall_lxml(html: str, tag: str, recursive: bool = True):
+    doc = lxml.html.fromstring(html)
+    pattern = ".//"
+    if recursive is False:
+        pattern = "./"
+
+    found = doc.findall(f"{pattern}{tag}")
+    if found:
+        return [lxml.html.tostring(tg, encoding="unicode") for tg in found]
+    return None
+
+
 def py_get_attr(html: str, tag: str, attr: str):
     soup = BeautifulSoup(html, "lxml")
     element = soup.find(tag)
@@ -42,23 +80,62 @@ def py_get_mac_addrs(text):
 
 
 # ------------------------------------------------------------------
-class PythonGetTextDefBs4(BaseFunctionDefinition):
+class PythonHTMLGetTextDefBs4(BaseFunctionDefinition):
     function = py_get_text_bs4
     reference = "BeautifulSoup().get_text()"
 
 
-class PythonGetTextDefLxml(BaseFunctionDefinition):
+class PythonHTMLGetTextDefLxml(BaseFunctionDefinition):
     function = py_get_text_lxml
     reference = "lxml.html.fromstring().text_content()"
 
 
-class CythonGetTextDef(BaseFunctionDefinition):
+class CythonHTMLGetTextDef(BaseFunctionDefinition):
     function = cy_textparse.html.get_text
     reference = "cythonpowered.textparse.html.get_text()"
     usage = REPLACEMENT
 
 
 # ------------------------------------------------------------------
+class PythonHTMLFindDefBs4(BaseFunctionDefinition):
+    function = py_find_bs4
+    reference = "BeautifulSoup().find()"
+
+
+class PythonHTMLFindDefLxml(BaseFunctionDefinition):
+    function = py_find_lxml
+    reference = "lxml.html.fromstring().find()"
+
+
+class CythonHTMLFindDef(BaseFunctionDefinition):
+    function = cy_textparse.html.find
+    reference = "cythonpowered.textparse.html.find()"
+    usage = REPLACEMENT
+
+
+# ------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------
+class PythonHTMLFindallDefBs4(BaseFunctionDefinition):
+    function = py_findall_bs4
+    reference = "BeautifulSoup().find_all()"
+
+
+class PythonHTMLFindallDefLxml(BaseFunctionDefinition):
+    function = py_findall_lxml
+    reference = "lxml.html.fromstring().findall()"
+
+
+class CythonHTMLFindallDef(BaseFunctionDefinition):
+    function = cy_textparse.html.find_all
+    reference = "cythonpowered.textparse.html.find_all()"
+    usage = REPLACEMENT
+
+
+# ------------------------------------------------------------------
+
+
 class PythonGetAttrDef(BaseFunctionDefinition):
     function = py_get_attr
     reference = "BeautifulSoup().find().get()"
@@ -104,7 +181,9 @@ class CythonExtractMacAddrsDef(BaseFunctionDefinition):
 
 
 TEXTPARSE_DEFINITION_PAIRS = [
-    [PythonGetTextDefBs4, CythonGetTextDef],
+    [PythonHTMLGetTextDefBs4, CythonHTMLGetTextDef],
+    [PythonHTMLFindDefBs4, CythonHTMLFindDef],
+    [PythonHTMLFindallDefBs4, CythonHTMLFindallDef],
     [PythonGetAttrDef, CythonGetAttrDef],
     [PythonExtractIpsDef, CythonExtractIpsDef],
     [PythonExtractEmailsDef, CythonExtractEmailsDef],
