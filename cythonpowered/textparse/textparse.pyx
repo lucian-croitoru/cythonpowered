@@ -137,108 +137,193 @@ cpdef inline str html_get_text(str html, bint strip=False):
 
 
 # -----------------------------------------------------------------------------
-cpdef inline object get_attr(str html, str tag, str attr):
-    """
-    Finds the first <tag ...> in HTML and extract the attr value.
-    Handles attr="value", attr='value', attr=value.
-    Returns None if tag or attribute not found.
-    Replacement for: BeautifulSoup(html).find(tag).get(attr).
-    """
-    cdef unsigned int i = 0
-    cdef unsigned int n = len(html)
-    cdef str tag_lower = tag.lower()
-    cdef str attr_lower = attr.lower()
-    cdef unsigned int j
-    cdef str current_tag
-    cdef str attr_name
-    cdef str attr_value
-    cdef unsigned char qc
+from cpython.unicode cimport (
+    PyUnicode_KIND,
+    PyUnicode_DATA,
+    PyUnicode_READ
+)
 
+cpdef inline str get_attr(str tag, str attr):
+    cdef:
+        Py_ssize_t n = len(tag)
+        Py_ssize_t m = len(attr)
+        Py_ssize_t i = 0          # Current scan position
+        Py_ssize_t j              # Loop variable
+        Py_ssize_t start          # Start of current token
+
+        # Cache Unicode internals once.
+        # This avoids repeated Python-level indexing.
+        int kind_tag = PyUnicode_KIND(tag)
+        int kind_attr = PyUnicode_KIND(attr)
+
+        void* data_tag = PyUnicode_DATA(tag)
+        void* data_attr = PyUnicode_DATA(attr)
+
+        Py_UCS4 c
+        Py_UCS4 quote
+
+    # ----------------------------------------------------------
+    # Skip the opening tag name.
+    #
+    # Example:
+    #     <a href="x">
+    #      ^
+    #      i starts here
+    #
+    # We stop once we reach the whitespace after "a".
+    # ----------------------------------------------------------
     while i < n:
-        if html[i] != '<':
-            i += 1
-            continue
+        c = PyUnicode_READ(kind_tag, data_tag, i)
+        if c == ' ' or c == '\t' or c == '\n' or c == '\r':
+            break
+        i += 1
 
-        # Skip comments
-        if i + 3 < n and html[i+1:i+4] == '<!--':
-            j = html.find('-->', i + 4)
-            i = (j + 3) if j != -1 else n
-            continue
+    # ----------------------------------------------------------
+    # Scan each attribute exactly once.
+    # ----------------------------------------------------------
+    while i < n:
 
-        # Parse tag name
-        j = i + 1
-        while j < n and html[j] not in (' ', '\t', '\n', '\r', '>'):
-            j += 1
-        current_tag = html[i+1:j].lower()
-
-        if current_tag != tag_lower:
-            # Not our tag, skip to end
-            j = html.find('>', i)
-            i = (j + 1) if j != -1 else n
-            continue
-
-        # Found target tag — scan for attribute
-        j += 1
-        while j < n and html[j] != '>':
-            # Skip whitespace
-            while j < n and html[j] in (' ', '\t', '\n', '\r'):
-                j += 1
-            if j >= n or html[j] == '>':
+        # Skip whitespace between attributes.
+        while i < n:
+            c = PyUnicode_READ(kind_tag, data_tag, i)
+            if c > ' ':
                 break
+            i += 1
 
-            # Read attribute name
-            attr_name = ""
-            while j < n and html[j] not in (' ', '=', '\t', '\n', '\r', '>'):
-                attr_name += html[j]
-                j += 1
+        if i >= n:
+            break
 
-            attr_name = attr_name.lower()
+        # Stop at end of tag.
+        if PyUnicode_READ(kind_tag, data_tag, i) == '>':
+            break
 
-            if attr_name == attr_lower:
-                # Found target attribute — read value
-                if j < n and html[j] == '=':
-                    j += 1
-                    # Skip whitespace
-                    while j < n and html[j] in (' ', '\t', '\n', '\r'):
-                        j += 1
-                    if j < n:
-                        qc = ord(html[j])
-                        if qc == ord('"') or qc == ord("'"):
-                            j += 1
-                            attr_value = ""
-                            while j < n and ord(html[j]) != qc:
-                                attr_value += html[j]
-                                j += 1
-                            if j < n:
-                                j += 1
-                            return attr_value
-                        else:
-                            attr_value = ""
-                            while j < n and html[j] not in (' ', '\t', '\n', '\r', '>'):
-                                attr_value += html[j]
-                                j += 1
-                            return attr_value
-                # Boolean attribute (no value)
+        # Beginning of current attribute name.
+        start = i
+
+        # Read until '=', whitespace or '>'.
+        while i < n:
+            c = PyUnicode_READ(kind_tag, data_tag, i)
+            if c == '=' or c <= ' ' or c == '>':
+                break
+            i += 1
+
+        # ------------------------------------------------------
+        # Compare attribute name.
+        #
+        # This performs an in-place character comparison.
+        # No temporary substring is ever created.
+        # ------------------------------------------------------
+        if i - start == m:
+
+            for j in range(m):
+                if (
+                    PyUnicode_READ(kind_tag, data_tag, start + j)
+                    !=
+                    PyUnicode_READ(kind_attr, data_attr, j)
+                ):
+                    break
+            else:
+                # ==================================================
+                # Attribute name matched.
+                # Parse and return its value.
+                # ==================================================
+
+                # Skip spaces before '='
+                while i < n and PyUnicode_READ(kind_tag, data_tag, i) <= ' ':
+                    i += 1
+
+                if i >= n or PyUnicode_READ(kind_tag, data_tag, i) != '=':
+                    return ""
+
+                i += 1
+
+                # Skip spaces after '='
+                while i < n and PyUnicode_READ(kind_tag, data_tag, i) <= ' ':
+                    i += 1
+
+                if i >= n:
+                    return ""
+
+                quote = PyUnicode_READ(kind_tag, data_tag, i)
+
+                # -----------------------------
+                # Quoted attribute
+                # href="..."
+                # -----------------------------
+                if quote == '"' or quote == "'":
+                    i += 1
+                    start = i
+
+                    while i < n and PyUnicode_READ(kind_tag, data_tag, i) != quote:
+                        i += 1
+
+                    # This is the ONLY string allocation.
+                    return tag[start:i]
+
+                # -----------------------------
+                # Unquoted attribute
+                # value=123
+                # -----------------------------
+                start = i
+
+                while i < n:
+                    c = PyUnicode_READ(kind_tag, data_tag, i)
+                    if c <= ' ' or c == '>':
+                        break
+                    i += 1
+
+                return tag[start:i]
+
+        # ------------------------------------------------------
+        # Attribute name didn't match.
+        #
+        # Skip over the entire attribute value so that scanning
+        # resumes at the next attribute.
+        # ------------------------------------------------------
+        while i < n:
+
+            c = PyUnicode_READ(kind_tag, data_tag, i)
+
+            if c == '>':
                 return ""
 
-            # Skip to next attribute or closing >
-            if j < n and html[j] == '=':
-                j += 1
-                if j < n:
-                    qc = ord(html[j])
-                    if qc == ord('"') or qc == ord("'"):
-                        j += 1
-                        while j < n and ord(html[j]) != qc:
-                            j += 1
-                        if j < n:
-                            j += 1
-                    else:
-                        while j < n and html[j] not in (' ', '\t', '\n', '\r', '>'):
-                            j += 1
-            
-        return None
-        # i = j + 1 if j < n else n
+            if c == '=':
 
+                i += 1
+
+                while i < n and PyUnicode_READ(kind_tag, data_tag, i) <= ' ':
+                    i += 1
+
+                if i >= n:
+                    return ""
+
+                quote = PyUnicode_READ(kind_tag, data_tag, i)
+
+                # Skip quoted value.
+                if quote == '"' or quote == "'":
+
+                    i += 1
+
+                    while i < n and PyUnicode_READ(kind_tag, data_tag, i) != quote:
+                        i += 1
+
+                    if i < n:
+                        i += 1
+
+                # Skip unquoted value.
+                else:
+
+                    while i < n:
+                        c = PyUnicode_READ(kind_tag, data_tag, i)
+                        if c <= ' ' or c == '>':
+                            break
+                        i += 1
+
+                break
+
+            i += 1
+
+    # Attribute not found.
     return None
 # -----------------------------------------------------------------------------
 
@@ -273,65 +358,6 @@ cdef inline bint tag_equals(
         target[:target_len]
     )
 
-
-cdef bint id_matches(
-    const char* html,
-    Py_ssize_t attr_start,
-    Py_ssize_t attr_end,
-    const char* wanted_id,
-    Py_ssize_t wanted_len
-):
-    cdef Py_ssize_t i = attr_start
-    cdef Py_ssize_t value_start
-    cdef Py_ssize_t value_end
-    cdef char quote
-
-    while i < attr_end - 2:
-
-        if (
-            html[i] == 'i' and
-            html[i+1] == 'd'
-        ):
-            i += 2
-
-            while i < attr_end and is_space(html[i]):
-                i += 1
-
-            if i >= attr_end or html[i] != '=':
-                continue
-
-            i += 1
-
-            while i < attr_end and is_space(html[i]):
-                i += 1
-
-            quote = html[i]
-
-            if quote not in (b'"'[0], b"'"[0]):
-                continue
-
-            value_start = i + 1
-
-            i += 1
-
-            while i < attr_end and html[i] != quote:
-                i += 1
-
-            value_end = i
-
-            if (
-                value_end - value_start ==
-                wanted_len
-            ):
-                if (
-                    html[value_start:value_end] ==
-                    wanted_id[:wanted_len]
-                ):
-                    return True
-
-        i += 1
-
-    return False
 
 
 from libc.string cimport memcmp
@@ -455,6 +481,8 @@ cpdef inline find_tag(
         return [] if results is None else results
 
     return None
+# -----------------------------------------------------------------------------
+
 
 
 # -----------------------------------------------------------------------------
