@@ -22,6 +22,7 @@ TEST_HTML = [
     '<a href="http://example.com?q=1&r=2">Link</a>',
     "<script>alert('xss')</script><p>Safe</p>",
     "<ul><li>Item 1</li><li>Item 2</li></ul>",
+    '<input type="text" name="username" value="john"/>',
 ]
 
 
@@ -138,7 +139,9 @@ TEST_TAGS = [
 @pytest.mark.parametrize(["html", "tag", "attr"], TEST_TAGS)
 def test_get_attr_vs_bs4(html, tag, attr):
     expected = py_get_attr(html, tag, attr)
-    actual = tp.get_attr(html, tag, attr)
+    actual = tp.html.find(html, tag)
+    if actual:
+        actual = tp.get_attr(actual, attr)
     assert actual == expected
 
 
