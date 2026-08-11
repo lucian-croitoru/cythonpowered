@@ -112,8 +112,11 @@ class HTMLFindallBenchmarkDefinitionLxml(BaseFunctionBenchmark):
 class GetAttrBenchmarkDefinition(BaseFunctionBenchmark):
     python_function = PythonGetAttrDef
     cython_function = CythonGetAttrDef
-    python_args = [HTML, "div", "class"]
-    cython_args = [HTML, "div", "class"]
+
+    html = "<div class='test-class' data-id='12345' data-value='hello'>content</div>"
+
+    python_args = [html, "div", "class"]
+    cython_args = [html, "class"]
     runs = [100, 1000, 10000]
 
 
