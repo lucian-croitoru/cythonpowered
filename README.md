@@ -1,159 +1,99 @@
-# Cython-powered replacements for popular Python functions. And more.
+# Cythonpowered
 
-`cythonpowered` is a library containing **replacements** for various `Python` functions,
-that are generated with `Cython` and **compiled at setup**, intended to provide **performance gains** for developers.
+Cython-powered replacements for popular Python functions — compiled for performance.
 
-Some functions are **drop-in replacements**, others are provided to **enhance** certain usages of the respective functions, or have slightly different implementations.
+[![PyPI version](https://img.shields.io/pypi/v/cythonpowered.svg)](https://pypi.org/project/cythonpowered/)
+[![Python versions](https://img.shields.io/pypi/pyversions/cythonpowered.svg)](https://pypi.org/project/cythonpowered/)
+[![License](https://img.shields.io/pypi/l/cythonpowered.svg)](LICENSE)
+
+## What cythonpowered IS
+
+A library of **Cython-compiled** function replacements designed for **performance**. Functions are compiled at installation time and provide speedups over pure-Python equivalents. Some are drop-in replacements; others extend functionality.
+
+## What cythonpowered is NOT
+
+- A subclass of `datetime.date` — the `date` class is a custom Cython `cdef class` with `year`, `month`, `day` public attributes
+- A full replacement for `BeautifulSoup` — HTML functions handle common patterns but not edge cases
+- Production-critical code without testing — always benchmark for your specific use case
+
+## Quick Start
+
+```bash
+pip install cythonpowered
+```
+
+## Modules
+
+### `cythonpowered.random` — Random number generation
+
+| Function | Replaces | Speedup |
+|---|---|---|
+| `random()` | `random.random()` | ~1.0x |
+| `n_random(k)` | `[random() for _ in range(k)]` | ~2.9x |
+| `randint(a, b)` | `random.randint(a, b)` | ~5.2x |
+| `n_randint(a, b, k)` | `[randint(a, b) for _ in range(k)]` | ~20.2x |
+| `uniform(a, b)` | `random.uniform(a, b)` | ~1.9x |
+| `n_uniform(a, b, k)` | `[uniform(a, b) for _ in range(k)]` | ~8.5x |
+| `choice(pop)` | `random.choice(pop)` | ~5.0x |
+| `choices(pop, k)` | `random.choices(pop, k=k)` | ~2.1x |
+
+### `cythonpowered.dateutil` — Date utilities
+
+| Function | Replaces | Speedup |
+|---|---|---|
+| `date.today()` | `datetime.date.today()` | ~1.1x |
+| `date.isleap(y)` | `calendar.isleap(y)` | ~1.7x |
+| `date.monthrange(y, m)` | `calendar.monthrange(y, m)` | ~3.7x |
+| `date.fromstring(s)` | `strptime().date()` | ~10.3x |
+| `date().tostring()` | `strftime('%Y-%m-%d')` | ~16.5x |
+| `date().weekday()` | `datetime.date().weekday()` | ~1.0x |
+| `date().yearday()` | `timetuple().tm_yday` | ~9.8x |
+| `date.fromordinal(n)` | `datetime.date.fromordinal()` | ~0.7x |
+| `date().toordinal()` | `datetime.date().toordinal()` | ~0.6x |
+| `date().offset(...)` | `date + timedelta` | ~2.9x |
+| `date().increment()` | `date + timedelta(days=1)` | ~3.4x |
+| `date.date_range(...)` | `pandas.date_range()` | ~15.5x |
+
+### `cythonpowered.textparse` — Text extraction
+
+| Function | Replaces | Speedup |
+|---|---|---|
+| `html.get_text(html, strip=False)` | `BeautifulSoup().get_text()` | ~38.2x |
+| `html.find(html, tag, recursive=True)` | `BeautifulSoup().find()` | ~552.8x |
+| `html.find_all(html, tag, recursive=True)` | `BeautifulSoup().find_all()` | ~408.8x |
+| `get_attr(tag, attr)` | `BeautifulSoup().find().get()` | ~638.7x |
+| `get_ips(text)` | `re.findall(...)` | ~3.4x |
+| `get_emails(text)` | `re.findall(...)` | ~3.1x |
+| `get_mac_addrs(text)` | `re.findall(...)` | ~1.6x |
+
+Note: `get_attr()` operates on a single tag string (e.g. the result of `html.find()`), not on a full HTML document. Speedups are vs. BeautifulSoup; comparisons vs. `lxml` are in [BENCHMARKS.md](BENCHMARKS.md).
+
+See [BENCHMARKS.md](BENCHMARKS.md) for full benchmark data.
 
 ## Installation
-`pip install cythonpowered`
 
-## Usage
-Simply **import** the desired function and use it in your `Python` code.
+```bash
+# Core library (no runtime dependencies)
+pip install cythonpowered
 
-Run `cythonpowered --list` to view all available functions and their `Python` conunterparts.
-#### Currently available functions:
-```
-               _   _                                                      _ 
-     ___ _   _| |_| |__   ___  _ __  _ __   _____      _____ _ __ ___  __| |
-    / __| | | | __| '_ \ / _ \| '_ \| '_ \ / _ \ \ /\ / / _ \ '__/ _ \/ _` |
-   | (__| |_| | |_| | | | (_) | | | | |_) | (_) \ V  V /  __/ | |  __/ (_| |
-    \___|\__, |\__|_| |_|\___/|_| |_| .__/ \___/ \_/\_/ \___|_|  \___|\__,_|
-         |___/                      |_|                                     
-                                                                  ver. 0.2.3
-
-+----+----------------------------------------------+-------------------------------------------+----------------------------------------------------------------------------+
-|  # | Python function                              | Is replaced by                            | Usage / details                                                            |
-+----+----------------------------------------------+-------------------------------------------+----------------------------------------------------------------------------+
-|  1 | random.random()                              | cythonpowered.random.random()             | Drop-in replacement                                                        |
-|  2 | random.random()                              | cythonpowered.random.n_random()           | n_random(k) replaces [random() for i in range(k)]                          |
-|  3 | random.randint()                             | cythonpowered.random.randint()            | Drop-in replacement                                                        |
-|  4 | random.randint()                             | cythonpowered.random.n_randint()          | n_randint(a, b, k) replaces [randint(a, b) for i in range(k)]              |
-|  5 | random.uniform()                             | cythonpowered.random.uniform()            | Drop-in replacement                                                        |
-|  6 | random.uniform()                             | cythonpowered.random.n_uniform()          | n_uniform(a, b, k) replaces [uniform(a, b) for i in range(k)]              |
-|  7 | random.choice()                              | cythonpowered.random.choice()             | Drop-in replacement                                                        |
-|  8 | random.choices()                             | cythonpowered.random.choices()            | Drop-in replacement, only supports the 'k' keyword argument                |
-+----+----------------------------------------------+-------------------------------------------+----------------------------------------------------------------------------+
-|  9 | datetime.date.today()                        | cythonpowered.dateutil.date.today()       | Drop-in replacement, returns cythonpowered date object                     |
-| 10 | calendar.isleap()                            | cythonpowered.dateutil.date.isleap()      | Drop-in replacement                                                        |
-| 11 | calendar.monthrange()                        | cythonpowered.dateutil.date.monthrange()  | Drop-in replacement                                                        |
-| 12 | datetime.datetime.strptime().date()          | cythonpowered.dateutil.date.fromstring()  | Assumes '%Y-%m-%d' format, returns cythonpowered date object               |
-| 13 | datetime.date().strftime()                   | cythonpowered.dateutil.date().tostring()  | Assumes '%Y-%m-%d' format, uses cythonpowered date object                  |
-| 14 | datetime.date().weekday()                    | cythonpowered.dateutil.date().weekday()   | Drop-in replacement, uses cythonpowered date object                        |
-| 15 | datetime.date().timetuple().tm_yday          | cythonpowered.dateutil.date().yearday()   | Drop-in replacement, uses cythonpowered date object                        |
-| 16 | datetime.date.fromordinal()                  | cythonpowered.dateutil.date.fromordinal() | Drop-in replacement, returns cythonpowered date object                     |
-| 17 | datetime.date().toordinal()                  | cythonpowered.dateutil.date().toordinal() | Drop-in replacement, uses cythonpowered date object                        |
-| 18 | datetime.date() +/- datetime.timedelta()     | cythonpowered.dateutil.date().offset()    | Supports days/weeks/months/years offset, returns cythonpowered date object |
-| 19 | datetime.date() + datetime.timedelta(days=1) | cythonpowered.dateutil.date().increment() | Increments cythonpowered date object by 1 day                              |
-| 20 | pandas.date_range()                          | cythonpowered.dateutil.date_range()       | Uses cythonpowered date object, returns a list of date strings             |
-+----+----------------------------------------------+-------------------------------------------+----------------------------------------------------------------------------+
+# Optional: benchmark tools and utils
+pip install cythonpowered[utils]
 ```
 
-## Benchmark
-Run `cythonpowered --benchmark` o view the performance gains **on your system** for all `cythonpowered` functions, compared to their `Python` counterparts.
-#### Example benchmark output:
+## CLI
+
+Installing the package provides the `cythonpowered` command:
+
+```bash
+cythonpowered --list       # list all functions and their Python counterparts
+cythonpowered --benchmark  # run benchmarks on your system (requires the [utils] extra)
+cythonpowered --version    # print the package version
 ```
-               _   _                                                      _ 
-     ___ _   _| |_| |__   ___  _ __  _ __   _____      _____ _ __ ___  __| |
-    / __| | | | __| '_ \ / _ \| '_ \| '_ \ / _ \ \ /\ / / _ \ '__/ _ \/ _` |
-   | (__| |_| | |_| | | | (_) | | | | |_) | (_) \ V  V /  __/ | |  __/ (_| |
-    \___|\__, |\__|_| |_|\___/|_| |_| .__/ \___/ \_/\_/ \___|_|  \___|\__,_|
-         |___/                      |_|                                     
-                                                                  ver. 0.2.3
 
-CPU model:             11th Gen Intel(R) Core(TM) i7-11370H @ 3.30GHz
-CPU base frequency:    3.3000 GHz
-CPU cores:             4
-CPU threads:           4
-Architecture:          x86_64
-Memory (RAM):          15.31 GB
-Operating System:      Linux 6.8.0-106-generic
-Python version:        3.12.3
-C compiler:            GCC 13.3.0
+## Links
 
-================================================================================
-Running benchmark for the [cythonpowered.random] module (5 benchmarks)...
-================================================================================
-Comparing Python random.random() with cythonpowered alternative(s)... 100.00%
-Comparing Python random.randint() with cythonpowered alternative(s)... 100.00%
-Comparing Python random.uniform() with cythonpowered alternative(s)... 100.00%
-Comparing Python random.choice() with cythonpowered alternative(s)... 100.00%
-Comparing Python random.choices() with cythonpowered alternative(s)... 100.00%
-+----------------------------------+-----------------+--------------------+--------------+
-|          Function name           |   No. of runs   |    Speed factor    | Avg. speedup |
-+----------------------------------+-----------------+--------------------+--------------+
-|     [Python] random.random()     | [10K, 100K, 1M] |        1.00        |     1.00     |
-|  cythonpowered.random.random()   | [10K, 100K, 1M] | [1.02, 0.99, 0.98] |     1.00     |
-| cythonpowered.random.n_random()  | [10K, 100K, 1M] | [3.06, 2.73, 2.83] |     2.88     |
-+----------------------------------+-----------------+--------------------+--------------+
-|    [Python] random.randint()     | [10K, 100K, 1M] |        1.00        |     1.00     |
-|  cythonpowered.random.randint()  | [10K, 100K, 1M] | [4.96, 4.40, 4.99] |     4.78     |
-| cythonpowered.random.n_randint() | [10K, 100K, 1M] | [24.3, 15.9, 17.1] |     19.1     |
-+----------------------------------+-----------------+--------------------+--------------+
-|    [Python] random.uniform()     | [10K, 100K, 1M] |        1.00        |     1.00     |
-|  cythonpowered.random.uniform()  | [10K, 100K, 1M] | [2.18, 2.04, 2.03] |     2.08     |
-| cythonpowered.random.n_uniform() | [10K, 100K, 1M] | [11.6, 7.43, 6.90] |     8.65     |
-+----------------------------------+-----------------+--------------------+--------------+
-|     [Python] random.choice()     | [10K, 100K, 1M] |        1.00        |     1.00     |
-|  cythonpowered.random.choice()   | [10K, 100K, 1M] | [4.89, 4.84, 4.81] |     4.85     |
-+----------------------------------+-----------------+--------------------+--------------+
-|    [Python] random.choices()     | [1K, 10K, 100K] |        1.00        |     1.00     |
-|  cythonpowered.random.choices()  | [1K, 10K, 100K] | [2.75, 2.61, 2.19] |     2.52     |
-+----------------------------------+-----------------+--------------------+--------------+
-
-================================================================================
-Running benchmark for the [cythonpowered.dateutil] module (12 benchmarks)...
-================================================================================
-Comparing Python datetime.date.today() with cythonpowered alternative(s)... 100.00%
-Comparing Python calendar.isleap() with cythonpowered alternative(s)... 100.00%
-Comparing Python calendar.monthrange() with cythonpowered alternative(s)... 100.00%
-Comparing Python datetime.datetime.strptime().date() with cythonpowered alternative(s)... 100.00%
-Comparing Python datetime.date().strftime() with cythonpowered alternative(s)... 100.00%
-Comparing Python datetime.date().weekday() with cythonpowered alternative(s)... 100.00%
-Comparing Python datetime.date().timetuple().tm_yday with cythonpowered alternative(s)... 100.00%
-Comparing Python datetime.date.fromordinal() with cythonpowered alternative(s)... 100.00%
-Comparing Python datetime.date().toordinal() with cythonpowered alternative(s)... 100.00%
-Comparing Python datetime.date() +/- datetime.timedelta() with cythonpowered alternative(s)... 100.00%
-Comparing Python datetime.date() + datetime.timedelta(days=1) with cythonpowered alternative(s)... 100.00%
-Comparing Python pandas.date_range() with cythonpowered alternative(s)... 100.00%
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|                     Function name                     |   No. of runs   |    Speed factor    | Avg. speedup |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|             [Python] datetime.date.today()            | [10K, 100K, 1M] |        1.00        |     1.00     |
-|          cythonpowered.dateutil.date.today()          | [10K, 100K, 1M] | [1.92, 1.83, 2.02] |     1.92     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|               [Python] calendar.isleap()              | [10K, 100K, 1M] |        1.00        |     1.00     |
-|          cythonpowered.dateutil.date.isleap()         | [10K, 100K, 1M] | [1.98, 1.70, 1.56] |     1.74     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|             [Python] calendar.monthrange()            | [10K, 100K, 1M] |        1.00        |     1.00     |
-|        cythonpowered.dateutil.date.monthrange()       | [10K, 100K, 1M] | [3.23, 1.82, 4.53] |     3.19     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|      [Python] datetime.datetime.strptime().date()     | [10K, 100K, 1M] |        1.00        |     1.00     |
-|        cythonpowered.dateutil.date.fromstring()       | [10K, 100K, 1M] | [10.8, 10.4, 10.2] |     10.5     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|          [Python] datetime.date().strftime()          | [10K, 100K, 1M] |        1.00        |     1.00     |
-|        cythonpowered.dateutil.date().tostring()       | [10K, 100K, 1M] | [19.3, 16.6, 15.8] |     17.2     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|           [Python] datetime.date().weekday()          | [10K, 100K, 1M] |        1.00        |     1.00     |
-|        cythonpowered.dateutil.date().weekday()        | [10K, 100K, 1M] | [1.08, 0.97, 0.97] |     1.01     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|      [Python] datetime.date().timetuple().tm_yday     | [10K, 100K, 1M] |        1.00        |     1.00     |
-|        cythonpowered.dateutil.date().yearday()        | [10K, 100K, 1M] | [6.76, 8.47, 11.2] |     8.82     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|          [Python] datetime.date.fromordinal()         | [10K, 100K, 1M] |        1.00        |     1.00     |
-|       cythonpowered.dateutil.date.fromordinal()       | [10K, 100K, 1M] | [0.69, 0.68, 0.69] |     0.69     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|          [Python] datetime.date().toordinal()         | [10K, 100K, 1M] |        1.00        |     1.00     |
-|       cythonpowered.dateutil.date().toordinal()       | [10K, 100K, 1M] | [0.58, 0.57, 0.56] |     0.57     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|   [Python] datetime.date() +/- datetime.timedelta()   | [10K, 100K, 1M] |        1.00        |     1.00     |
-|         cythonpowered.dateutil.date().offset()        | [10K, 100K, 1M] | [3.02, 2.70, 2.78] |     2.83     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-| [Python] datetime.date() + datetime.timedelta(days=1) | [10K, 100K, 1M] |        1.00        |     1.00     |
-|       cythonpowered.dateutil.date().increment()       | [10K, 100K, 1M] | [3.48, 3.24, 3.21] |     3.31     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-|              [Python] pandas.date_range()             |  [100, 1K, 10K] |        1.00        |     1.00     |
-|          cythonpowered.dateutil.date_range()          |  [100, 1K, 10K] | [16.5, 15.6, 14.5] |     15.5     |
-+-------------------------------------------------------+-----------------+--------------------+--------------+
-```
----
+- [Changelog](CHANGELOG.md)
+- [Benchmarks](BENCHMARKS.md)
+- [Contributing](CONTRIBUTING.md)
+- [Development](DEVELOPMENT.md)
+- [GitHub](https://github.com/lucian-croitoru/cythonpowered)
