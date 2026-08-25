@@ -1,5 +1,15 @@
 # Cythonpowered Benchmarks
 
+## Notes
+
+- The results below are an **example benchmark** — the output of `cythonpowered --benchmark`, available when installing the `[utils]` extra (`pip install cythonpowered[utils]`)
+- Actual results may vary depending on OS, Python version, hardware configuration, or architecture
+- Benchmarks run on the system specifications listed below
+- Each benchmark is measured at 3 sample sizes (see "Runs" column per table)
+- Speed factor = Python time / Cython time (>1 means Cython is faster)
+- `date.fromordinal` and `date.toordinal` are faster in Python for their specific workload, but their `cythonpowered.dateutil` counterparts speed up other `cythonpowered.dateutil` functions internally
+- `textparse` HTML benchmarks compare against both `BeautifulSoup` and `lxml`; the very high factors for `find`/`find_all`/`get_attr` vs. `BeautifulSoup` reflect that the Python reference re-parses the whole document on every call
+
 ## System Specifications
 
 - **CPU model**: 11th Gen Intel(R) Core(TM) i7-11370H @ 3.30GHz
@@ -87,11 +97,3 @@
 | `cythonpowered.textparse.get_emails()` | [100, 1K, 10K] | [3.30, 2.96, 2.99] | 3.08 |
 | `[Python] re.findall(...) implementation to get MACs` | [100, 1K, 10K] | 1.00 | 1.00 |
 | `cythonpowered.textparse.get_mac_addrs()` | [100, 1K, 10K] | [1.75, 1.59, 1.54] | 1.63 |
-
-## Notes
-
-- Benchmarks run on system specs listed above
-- Each benchmark is measured at 3 sample sizes (see "Runs" column per table)
-- Speed factor = Python time / Cython time (>1 means Cython is faster)
-- `date.fromordinal` and `date.toordinal` are faster in Python for this workload
-- `textparse` HTML benchmarks compare against both `BeautifulSoup` and `lxml`; the very high factors for `find`/`find_all`/`get_attr` vs. `BeautifulSoup` reflect that the Python reference re-parses the whole document on every call
