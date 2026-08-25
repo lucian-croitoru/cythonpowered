@@ -12,7 +12,8 @@ from utils.definitions._textparse import (
     PythonHTMLFindallDefBs4,
     PythonHTMLFindallDefLxml,
     CythonHTMLFindallDef,
-    PythonGetAttrDef,
+    PythonGetAttrDefBs4,
+    PythonGetAttrDefLxml,
     CythonGetAttrDef,
     PythonExtractIpsDef,
     CythonExtractIpsDef,
@@ -109,8 +110,19 @@ class HTMLFindallBenchmarkDefinitionLxml(BaseFunctionBenchmark):
     runs = [100, 1000, 10000]
 
 
-class GetAttrBenchmarkDefinition(BaseFunctionBenchmark):
-    python_function = PythonGetAttrDef
+class GetAttrBenchmarkDefinitionBs4(BaseFunctionBenchmark):
+    python_function = PythonGetAttrDefBs4
+    cython_function = CythonGetAttrDef
+
+    html = "<div class='test-class' data-id='12345' data-value='hello'>content</div>"
+
+    python_args = [html, "div", "class"]
+    cython_args = [html, "class"]
+    runs = [100, 1000, 10000]
+
+
+class GetAttrBenchmarkDefinitionLxml(BaseFunctionBenchmark):
+    python_function = PythonGetAttrDefLxml
     cython_function = CythonGetAttrDef
 
     html = "<div class='test-class' data-id='12345' data-value='hello'>content</div>"
@@ -153,7 +165,8 @@ class TextparseBenchmark(BaseModuleBenchmark):
         HTMLFindBenchmarkDefinitionLxml,
         HTMLFindallBenchmarkDefinitionBs4,
         HTMLFindallBenchmarkDefinitionLxml,
-        GetAttrBenchmarkDefinition,
+        GetAttrBenchmarkDefinitionBs4,
+        GetAttrBenchmarkDefinitionLxml,
         ExtractIpsBenchmarkDefinition,
         ExtractEmailsBenchmarkDefinition,
         ExtractMacAddrsBenchmarkDefinition,

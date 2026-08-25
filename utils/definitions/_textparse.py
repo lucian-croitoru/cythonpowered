@@ -55,10 +55,20 @@ def py_findall_lxml(html: str, tag: str, recursive: bool = True):
     return None
 
 
-def py_get_attr(html: str, tag: str, attr: str):
+def py_get_attr_bs4(html: str, tag: str, attr: str):
     soup = BeautifulSoup(html, "lxml")
     element = soup.find(tag)
     if element:
+        return element.get(attr)
+    return None
+
+
+def py_get_attr_lxml(html: str, tag: str, attr: str):
+    doc = lxml.html.fromstring(html)
+    # iter() includes the root element itself, which fromstring() returns
+    # directly when parsing a fragment.
+    element = next((el for el in doc.iter(tag)), None)
+    if element is not None:
         return element.get(attr)
     return None
 
@@ -136,9 +146,14 @@ class CythonHTMLFindallDef(BaseFunctionDefinition):
 # ------------------------------------------------------------------
 
 
-class PythonGetAttrDef(BaseFunctionDefinition):
-    function = py_get_attr
+class PythonGetAttrDefBs4(BaseFunctionDefinition):
+    function = py_get_attr_bs4
     reference = "BeautifulSoup().find().get()"
+
+
+class PythonGetAttrDefLxml(BaseFunctionDefinition):
+    function = py_get_attr_lxml
+    reference = "lxml.html.fromstring().find().get()"
 
 
 class CythonGetAttrDef(BaseFunctionDefinition):
@@ -184,7 +199,7 @@ TEXTPARSE_DEFINITION_PAIRS = [
     [PythonHTMLGetTextDefBs4, CythonHTMLGetTextDef],
     [PythonHTMLFindDefBs4, CythonHTMLFindDef],
     [PythonHTMLFindallDefBs4, CythonHTMLFindallDef],
-    [PythonGetAttrDef, CythonGetAttrDef],
+    [PythonGetAttrDefBs4, CythonGetAttrDef],
     [PythonExtractIpsDef, CythonExtractIpsDef],
     [PythonExtractEmailsDef, CythonExtractEmailsDef],
     [PythonExtractMacAddrsDef, CythonExtractMacAddrsDef],

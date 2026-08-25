@@ -7,7 +7,8 @@ from utils.definitions._textparse import (
     py_findall_bs4,
     py_find_lxml,
     py_findall_lxml,
-    py_get_attr,
+    py_get_attr_bs4,
+    py_get_attr_lxml,
     py_get_ips,
     py_get_emails,
     py_get_mac_addrs,
@@ -138,7 +139,16 @@ TEST_TAGS = [
 
 @pytest.mark.parametrize(["html", "tag", "attr"], TEST_TAGS)
 def test_get_attr_vs_bs4(html, tag, attr):
-    expected = py_get_attr(html, tag, attr)
+    expected = py_get_attr_bs4(html, tag, attr)
+    actual = tp.html.find(html, tag)
+    if actual:
+        actual = tp.get_attr(actual, attr)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(["html", "tag", "attr"], TEST_TAGS)
+def test_get_attr_vs_lxml(html, tag, attr):
+    expected = py_get_attr_lxml(html, tag, attr)
     actual = tp.html.find(html, tag)
     if actual:
         actual = tp.get_attr(actual, attr)
