@@ -330,6 +330,17 @@ cpdef inline str get_attr(str tag, str attr):
 
 
 # -----------------------------------------------------------------------------
+# Fast HTML tag search
+# -----------------------------------------------------------------------------
+
+from libc.string cimport memcmp
+from cpython.unicode cimport PyUnicode_AsUTF8AndSize
+
+
+# -----------------------------------------------------------------------------
+# Helpers
+# -----------------------------------------------------------------------------
+
 cdef inline bint is_space(char c):
     return (
         c == ' ' or
@@ -346,22 +357,229 @@ cdef inline bint tag_equals(
     const char* target,
     Py_ssize_t target_len
 ):
-    cdef Py_ssize_t n
+    cdef Py_ssize_t length = end - start
 
-    n = end - start
-
-    if n != target_len:
+    if length != target_len:
         return False
 
+    return memcmp(
+        html + start,
+        target,
+        target_len
+    ) == 0
+
+
+cdef inline bint is_void_tag(
+    const char* tag_ptr,
+    Py_ssize_t tag_len
+):
+    """
+    HTML5 void elements.
+
+    These elements do not have closing tags:
+
+        <area>
+        <base>
+        <br>
+        <col>
+        <embed>
+        <hr>
+        <img>
+        <input>
+        <link>
+        <meta>
+        <param>
+        <source>
+        <track>
+        <wbr>
+    """
+
+    if tag_len == 2:
+        return (
+            memcmp(tag_ptr, b"br", 2) == 0 or
+            memcmp(tag_ptr, b"hr", 2) == 0
+        )
+
+    if tag_len == 3:
+        return (
+            memcmp(tag_ptr, b"img", 3) == 0 or
+            memcmp(tag_ptr, b"col", 3) == 0
+        )
+
+    if tag_len == 4:
+        return (
+            memcmp(tag_ptr, b"area", 4) == 0 or
+            memcmp(tag_ptr, b"base", 4) == 0 or
+            memcmp(tag_ptr, b"link", 4) == 0 or
+            memcmp(tag_ptr, b"meta", 4) == 0
+        )
+
+    if tag_len == 5:
+        return (
+            memcmp(tag_ptr, b"input", 5) == 0 or
+            memcmp(tag_ptr, b"embed", 5) == 0 or
+            memcmp(tag_ptr, b"param", 5) == 0 or
+            memcmp(tag_ptr, b"track", 5) == 0
+        )
+
+    if tag_len == 6:
+        return (
+            memcmp(tag_ptr, b"source", 6) == 0
+        )
+
+    if tag_len == 3:
+        return (
+            memcmp(tag_ptr, b"wbr", 3) == 0
+        )
+
+    return False
+
+
+# -----------------------------------------------------------------------------
+# Find the end of an opening tag.
+#
+# This correctly handles:
+#
+#     <input type="text">
+#     <input title="1 > 0">
+#
+# so that '>' inside quotes isn't treated as the end of the tag.
+# -----------------------------------------------------------------------------
+
+cdef inline Py_ssize_t find_tag_end(
+    const char* buf,
+    Py_ssize_t start,
+    Py_ssize_t n
+):
+    cdef:
+        Py_ssize_t i = start
+        char quote = 0
+
+    while i < n:
+
+        if quote != 0:
+            if buf[i] == quote:
+                quote = 0
+
+        else:
+            if buf[i] == '"' or buf[i] == "'":
+                quote = buf[i]
+
+            elif buf[i] == '>':
+                return i
+
+        i += 1
+
+    return n
+
+
+# -----------------------------------------------------------------------------
+# Determine whether an opening tag is explicitly self-closing:
+#
+#     <foo />
+#     <foo/>
+# -----------------------------------------------------------------------------
+
+cdef inline bint is_self_closing(
+    const char* buf,
+    Py_ssize_t start,
+    Py_ssize_t end
+):
+    cdef Py_ssize_t i = end
+
+    while i > start and is_space(buf[i - 1]):
+        i -= 1
+
     return (
-        html[start:start+n] ==
-        target[:target_len]
+        i > start and
+        buf[i - 1] == '/'
     )
 
 
+# -----------------------------------------------------------------------------
+# Find the next tag name.
+#
+# Returns:
+#
+#     0  = not a normal opening/closing tag
+#     1  = opening tag
+#     2  = closing tag
+#
+# name_start/name_end contain the tag name.
+# tag_end contains the position of '>'.
+# -----------------------------------------------------------------------------
 
-from libc.string cimport memcmp
-from cpython.unicode cimport PyUnicode_AsUTF8AndSize
+cdef inline int parse_tag(
+    const char* buf,
+    Py_ssize_t start,
+    Py_ssize_t n,
+    Py_ssize_t* name_start,
+    Py_ssize_t* name_end,
+    Py_ssize_t* tag_end
+):
+    cdef:
+        Py_ssize_t i = start + 1
+        Py_ssize_t ns
+        Py_ssize_t ne
+        bint closing = False
+
+    if i >= n:
+        return 0
+
+    # Closing tag
+    if buf[i] == '/':
+        closing = True
+        i += 1
+
+    # Comments, declarations, processing instructions, etc.
+    if i >= n:
+        return 0
+
+    if (
+        buf[i] == '!' or
+        buf[i] == '?' 
+    ):
+        return 0
+
+    # Skip whitespace after '<' or '</'
+    while i < n and is_space(buf[i]):
+        i += 1
+
+    ns = i
+
+    # Tag name
+    while (
+        i < n and
+        not is_space(buf[i]) and
+        buf[i] != '>' and
+        buf[i] != '/'
+    ):
+        i += 1
+
+    ne = i
+
+    if ne == ns:
+        return 0
+
+    # Find the end of the complete tag.
+    i = find_tag_end(buf, i, n)
+
+    if i >= n:
+        return 0
+
+    name_start[0] = ns
+    name_end[0] = ne
+    tag_end[0] = i
+
+    if closing:
+        return 2
+
+    return 1
+
+
+# -----------------------------------------------------------------------------
+# Main function
+# -----------------------------------------------------------------------------
 
 cpdef inline find_tag(
     str html,
@@ -372,10 +590,47 @@ cpdef inline find_tag(
     """
     Fast HTML tag search.
 
+    Examples:
+
+        find_tag(html, "div")
+
+            -> "<div>...</div>"
+
+        find_tag(html, "input")
+
+            -> '<input type="text">'
+
+        find_tag(html, "input", find_all=True)
+
+            -> [
+                   '<input type="text">',
+                   '<input type="email">'
+               ]
+
+    Args:
+        html:
+            HTML string to search.
+
+        tag:
+            Tag name, e.g. "div", "input", "img".
+
+        find_all:
+            Return all matching tags instead of the first one.
+
+        recursive:
+            If True, matching tags may occur inside other elements.
+
+            If False, only top-level matching tags are returned.
+
     Returns:
-        first matching tag string
-        OR list[str] if find_all=True
-        OR None
+        str
+            First matching tag.
+
+        list[str]
+            All matching tags when find_all=True.
+
+        None
+            If no matching tag exists.
     """
 
     cdef:
@@ -394,93 +649,291 @@ cpdef inline find_tag(
         Py_ssize_t name_start
         Py_ssize_t name_end
 
-        Py_ssize_t depth = 0
+        Py_ssize_t close_name_start
+        Py_ssize_t close_name_end
+        Py_ssize_t close_end
 
-        bytes close_tag = b"</" + tag.encode() + b">"
-        const char* close_ptr = close_tag
-        Py_ssize_t close_len = len(close_tag)
+        Py_ssize_t depth = 0
+        Py_ssize_t local_depth
+
+        int tag_type
+        int inner_type
+
+        bint self_closing
 
         list results = []
 
+        bytes tag_bytes
+        bytes lower_tag
+
+    # -------------------------------------------------------------------------
+    # Convert strings to UTF-8.
+    # -------------------------------------------------------------------------
+
     buf = PyUnicode_AsUTF8AndSize(html, &n)
-    tag_ptr = PyUnicode_AsUTF8AndSize(tag, &tag_len)
+
+    # Make tag comparison case-insensitive.
+    #
+    # HTML tag names are ASCII case-insensitive.
+    lower_tag = tag.lower().encode("ascii")
+    tag_ptr = lower_tag
+    tag_len = len(lower_tag)
+
+    # -------------------------------------------------------------------------
+    # Main scan
+    # -------------------------------------------------------------------------
 
     while i < n:
 
+        # Find next '<'
         if buf[i] != '<':
             i += 1
             continue
 
-        # Closing tag
-        if i + 1 < n and buf[i + 1] == '/':
+        open_start = i
 
-            depth -= 1
+        # ---------------------------------------------------------------------
+        # Parse this tag.
+        # ---------------------------------------------------------------------
 
-            while i < n and buf[i] != '>':
-                i += 1
+        tag_type = parse_tag(
+            buf,
+            i,
+            n,
+            &name_start,
+            &name_end,
+            &open_end
+        )
 
+        # Not a normal tag.
+        if tag_type == 0:
             i += 1
             continue
 
-        open_start = i
-        i += 1
+        # ---------------------------------------------------------------------
+        # Closing tags don't start a search.
+        #
+        # We don't use them to blindly manipulate global depth because
+        # unrelated closing tags should not affect whether our requested
+        # tag is nested.
+        # ---------------------------------------------------------------------
 
-        name_start = i
+        if tag_type == 2:
+            i = open_end + 1
 
-        while (
-            i < n and
-            not is_space(buf[i]) and
-            buf[i] != '>'
+            if depth > 0:
+                depth -= 1
+
+            continue
+
+        # ---------------------------------------------------------------------
+        # Opening tag.
+        # ---------------------------------------------------------------------
+
+        # Is this the tag we're looking for?
+        if tag_equals(
+            buf,
+            name_start,
+            name_end,
+            tag_ptr,
+            tag_len
         ):
-            i += 1
 
-        name_end = i
+            # -------------------------------------------------------------
+            # Void HTML element.
+            #
+            # Examples:
+            #
+            #   <input>
+            #   <input type="text">
+            #   <img src="foo.jpg">
+            #   <br>
+            #
+            # There is no closing tag to search for.
+            # -------------------------------------------------------------
 
-        while i < n and buf[i] != '>':
-            i += 1
-
-        open_end = i
-
-        if (
-            tag_equals(
-                buf,
-                name_start,
-                name_end,
+            if is_void_tag(
                 tag_ptr,
                 tag_len
-            )
-            and
-            (recursive or depth == 0)
-        ):
+            ):
 
-            j = open_end
-
-            while j + close_len <= n:
-
-                # Skip until next '<'
-                while j < n and buf[j] != '<':
-                    j += 1
-
-                if j + close_len > n:
-                    break
-
-                if memcmp(buf + j, close_ptr, close_len) == 0:
+                if recursive or depth == 0:
 
                     if not find_all:
-                        return html[open_start:j + close_len]
+                        return html[
+                            open_start:open_end + 1
+                        ]
 
-                    results.append(html[open_start:j + close_len])
-                    break
+                    results.append(
+                        html[
+                            open_start:open_end + 1
+                        ]
+                    )
 
-                j += 1
+                i = open_end + 1
+                continue
 
-        depth += 1
-        i += 1
+            # -------------------------------------------------------------
+            # Explicit self-closing element.
+            #
+            # Examples:
+            #
+            #   <foo />
+            #   <custom/>
+            #
+            # -------------------------------------------------------------
+
+            self_closing = is_self_closing(
+                buf,
+                open_start,
+                open_end
+            )
+
+            if self_closing:
+
+                if recursive or depth == 0:
+
+                    if not find_all:
+                        return html[
+                            open_start:open_end + 1
+                        ]
+
+                    results.append(
+                        html[
+                            open_start:open_end + 1
+                        ]
+                    )
+
+                i = open_end + 1
+                continue
+
+            # -------------------------------------------------------------
+            # Normal opening/closing element.
+            #
+            # Search for the corresponding closing tag.
+            # -------------------------------------------------------------
+
+            if recursive or depth == 0:
+
+                local_depth = 1
+                j = open_end + 1
+
+                while j < n:
+
+                    # Find next '<'
+                    while j < n and buf[j] != '<':
+                        j += 1
+
+                    if j >= n:
+                        break
+
+                    # -----------------------------------------------------
+                    # Parse next tag.
+                    # -----------------------------------------------------
+
+                    inner_type = parse_tag(
+                        buf,
+                        j,
+                        n,
+                        &close_name_start,
+                        &close_name_end,
+                        &close_end
+                    )
+
+                    if inner_type == 0:
+                        j += 1
+                        continue
+
+                    # -----------------------------------------------------
+                    # Another opening tag with the same name.
+                    # -----------------------------------------------------
+
+                    if inner_type == 1:
+
+                        # Ignore void elements.
+                        if tag_equals(
+                            buf,
+                            close_name_start,
+                            close_name_end,
+                            tag_ptr,
+                            tag_len
+                        ):
+
+                            if not is_void_tag(
+                                buf + close_name_start,
+                                close_name_end - close_name_start
+                            ) and not is_self_closing(
+                                buf,
+                                j,
+                                close_end
+                            ):
+                                local_depth += 1
+
+                        j = close_end + 1
+                        continue
+
+                    # -----------------------------------------------------
+                    # Closing tag.
+                    # -----------------------------------------------------
+
+                    if inner_type == 2:
+
+                        if tag_equals(
+                            buf,
+                            close_name_start,
+                            close_name_end,
+                            tag_ptr,
+                            tag_len
+                        ):
+
+                            local_depth -= 1
+
+                            if local_depth == 0:
+
+                                if not find_all:
+                                    return html[
+                                        open_start:close_end + 1
+                                    ]
+
+                                results.append(
+                                    html[
+                                        open_start:close_end + 1
+                                    ]
+                                )
+
+                                break
+
+                        j = close_end + 1
+                        continue
+
+                    j = close_end + 1
+
+        # ---------------------------------------------------------------------
+        # Move to the next opening tag.
+        # ---------------------------------------------------------------------
+
+        # Void/self-closing tags don't increase depth.
+        if not is_void_tag(
+            buf + name_start,
+            name_end - name_start
+        ) and not is_self_closing(
+            buf,
+            open_start,
+            open_end
+        ):
+            depth += 1
+
+        i = open_end + 1
+
+    # -------------------------------------------------------------------------
+    # Results
+    # -------------------------------------------------------------------------
 
     if find_all:
-        return [] if results is None else results
+        return results
 
     return None
+
 # -----------------------------------------------------------------------------
 
 
