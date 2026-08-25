@@ -8,13 +8,15 @@ Cython-powered replacements for popular Python functions — compiled for perfor
 
 ## What cythonpowered IS
 
-A library of **Cython-compiled** function replacements designed for **performance**. Functions are compiled at installation time and provide speedups over pure-Python equivalents. Some are drop-in replacements; others extend functionality.
+- A library of **Cython-compiled** function replacements designed for **performance**. Each function is written in Cython and compiled to native code, providing measurable speedups over the pure-Python equivalents it replaces.
+- A set of **native extensions compiled at install time**. `pip install` builds the C extensions for your platform, so there is no runtime compilation, no build step, and no extra tooling required from end users.
+- A collection of functions that **mirror familiar APIs** from the standard library and popular third-party packages. Many are drop-in replacements you can swap in with minimal code changes, while others extend functionality beyond what the originals offer.
 
 ## What cythonpowered is NOT
 
-- A subclass of `datetime.date` — the `date` class is a custom Cython `cdef class` with `year`, `month`, `day` public attributes
-- A full replacement for `BeautifulSoup` — HTML functions handle common patterns but not edge cases
-- Production-critical code without testing — always benchmark for your specific use case
+- A wrapper or fork of an existing Python library. Every function is implemented from scratch in Cython — cythonpowered does not re-export, subclass, or bind to CPython internals or third-party packages; it stands on its own.
+- A 100% drop-in replacement for the libraries it draws inspiration from. Functions target the most common use cases and mirror familiar interfaces, but edge-case behavior or supported options may differ from the originals.
+- A guarantee of speedups on every system. Measured speedups depend on hardware, data shapes, and usage patterns, and some operations may be slower than their pure-Python counterparts. Always benchmark for your specific use case before relying on the numbers.
 
 ## Quick Start
 
