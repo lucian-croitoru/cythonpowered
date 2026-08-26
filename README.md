@@ -11,12 +11,13 @@ Cython-powered replacements for popular Python functions — compiled for perfor
 - A library of **Cython-compiled** function replacements designed for **performance**. Each function is written in Cython and compiled to native code, providing measurable speedups over the pure-Python equivalents it replaces.
 - A set of **native extensions compiled at install time**. `pip install` builds the C extensions for your platform, so there is no runtime compilation, no build step, and no extra tooling required from end users.
 - A collection of functions that **mirror familiar APIs** from the standard library and popular third-party packages. Many are drop-in replacements you can swap in with minimal code changes, while others extend functionality beyond what the originals offer.
+- **Lightweight. Zero runtime dependencies**. A pure Cython core with no external packages means no dependency conflicts or transitive bloat, making it ideal for performance-critical or containerized deployments. Heavier tooling (e.g. `pandas`, `beautifulsoup4`) lives only in the optional `[utils]` extra for benchmarking, never in the core.
 
 ## What cythonpowered is NOT
 
 - A wrapper or fork of an existing Python library. Every function is implemented from scratch in Cython — cythonpowered does not re-export, subclass, or bind to CPython internals or third-party packages; it stands on its own.
 - A 100% drop-in replacement for the libraries it draws inspiration from. Functions target the most common use cases and mirror familiar interfaces, but edge-case behavior or supported options may differ from the originals.
-- A guarantee of speedups on every system. Measured speedups depend on hardware, data shapes, and usage patterns, and some operations may be slower than their pure-Python counterparts. Always benchmark for your specific use case before relying on the numbers.
+- A universal speedup guarantee. Functions are designed to outperform the pure-Python equivalents they replace, and most deliver measurable gains — see [BENCHMARKS.md](BENCHMARKS.md). Exact speedups vary with hardware, OS, Python version, C compiler, data and usage patterns, so benchmark on your own workload before relying on specific figures.
 
 ## Quick Start
 
