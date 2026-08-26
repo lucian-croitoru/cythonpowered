@@ -73,6 +73,16 @@ def py_get_attr_lxml(html: str, tag: str, attr: str):
     return None
 
 
+# Fair-comparison variants for get_attr: the element is already parsed, so
+# only the attribute lookup is measured (no document re-parse, no tag re-find).
+def py_get_attr_bs4_for_benchmark(element, attr: str):
+    return element.get(attr)
+
+
+def py_get_attr_lxml_for_benchmark(element, attr: str):
+    return element.get(attr)
+
+
 def py_get_ips(text):
     pattern = r"(?<![.\d])(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?![.\d])"
     matches = py_re.findall(pattern, text)
@@ -154,6 +164,16 @@ class PythonGetAttrDefBs4(BaseFunctionDefinition):
 class PythonGetAttrDefLxml(BaseFunctionDefinition):
     function = py_get_attr_lxml
     reference = "lxml.html.fromstring().find().get()"
+
+
+class PythonGetAttrDefBs4ForBenchmark(BaseFunctionDefinition):
+    function = py_get_attr_bs4_for_benchmark
+    reference = "BeautifulSoup Tag.get()"
+
+
+class PythonGetAttrDefLxmlForBenchmark(BaseFunctionDefinition):
+    function = py_get_attr_lxml_for_benchmark
+    reference = "lxml Element.get()"
 
 
 class CythonGetAttrDef(BaseFunctionDefinition):

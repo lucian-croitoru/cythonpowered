@@ -2,6 +2,9 @@ from utils.benchmark._base import (
     BaseFunctionBenchmark,
     BaseModuleBenchmark,
 )
+from bs4 import BeautifulSoup
+import lxml.html
+
 from utils.definitions._textparse import (
     PythonHTMLGetTextDefBs4,
     PythonHTMLGetTextDefLxml,
@@ -12,8 +15,8 @@ from utils.definitions._textparse import (
     PythonHTMLFindallDefBs4,
     PythonHTMLFindallDefLxml,
     CythonHTMLFindallDef,
-    PythonGetAttrDefBs4,
-    PythonGetAttrDefLxml,
+    PythonGetAttrDefBs4ForBenchmark,
+    PythonGetAttrDefLxmlForBenchmark,
     CythonGetAttrDef,
     PythonExtractIpsDef,
     CythonExtractIpsDef,
@@ -58,6 +61,13 @@ MAC_TEXTS = " ".join(
         f"MAC: 00:1A:2B:{i:02X}:{i+1:02X}:{i+2:02X} registered on switch port {i} at time {i}"
         for i in range(100)
     ]
+)
+
+# Single tag used for the get_attr benchmark. The Cython function receives the
+# raw tag string, so the bs4/lxml side is given the already-parsed element to
+# keep the comparison fair (attribute lookup only, no document re-parse).
+GET_ATTR_TAG = (
+    "<div class='test-class' data-id='12345' data-value='hello'>content</div>"
 )
 
 
@@ -111,24 +121,26 @@ class HTMLFindallBenchmarkDefinitionLxml(BaseFunctionBenchmark):
 
 
 class GetAttrBenchmarkDefinitionBs4(BaseFunctionBenchmark):
-    python_function = PythonGetAttrDefBs4
+    python_function = PythonGetAttrDefBs4ForBenchmark
     cython_function = CythonGetAttrDef
 
-    html = "<div class='test-class' data-id='12345' data-value='hello'>content</div>"
+    # Pre-parse the tag once so only the attribute lookup is timed.
+    element = BeautifulSoup(GET_ATTR_TAG, "lxml").find("div")
 
-    python_args = [html, "div", "class"]
-    cython_args = [html, "class"]
+    python_args = [element, "class"]
+    cython_args = [GET_ATTR_TAG, "class"]
     runs = [100, 1000, 10000]
 
 
 class GetAttrBenchmarkDefinitionLxml(BaseFunctionBenchmark):
-    python_function = PythonGetAttrDefLxml
+    python_function = PythonGetAttrDefLxmlForBenchmark
     cython_function = CythonGetAttrDef
 
-    html = "<div class='test-class' data-id='12345' data-value='hello'>content</div>"
+    # Pre-parse the tag once so only the attribute lookup is timed.
+    element = lxml.html.fromstring(GET_ATTR_TAG)
 
-    python_args = [html, "div", "class"]
-    cython_args = [html, "class"]
+    python_args = [element, "class"]
+    cython_args = [GET_ATTR_TAG, "class"]
     runs = [100, 1000, 10000]
 
 
