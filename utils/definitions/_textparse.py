@@ -103,7 +103,7 @@ class PythonHTMLGetTextDefLxml(BaseFunctionDefinition):
 class CythonHTMLGetTextDef(BaseFunctionDefinition):
     function = cy_textparse.html.get_text
     reference = "cythonpowered.textparse.html.get_text()"
-    usage = REPLACEMENT
+    usage = f"{REPLACEMENT}, no HTML entity decoding"
 
 
 # ------------------------------------------------------------------
@@ -120,7 +120,7 @@ class PythonHTMLFindDefLxml(BaseFunctionDefinition):
 class CythonHTMLFindDef(BaseFunctionDefinition):
     function = cy_textparse.html.find
     reference = "cythonpowered.textparse.html.find()"
-    usage = REPLACEMENT
+    usage = f"{REPLACEMENT}, raw substring"
 
 
 # ------------------------------------------------------------------
@@ -140,7 +140,7 @@ class PythonHTMLFindallDefLxml(BaseFunctionDefinition):
 class CythonHTMLFindallDef(BaseFunctionDefinition):
     function = cy_textparse.html.find_all
     reference = "cythonpowered.textparse.html.find_all()"
-    usage = REPLACEMENT
+    usage = f"{REPLACEMENT}, raw substrings"
 
 
 # ------------------------------------------------------------------
@@ -159,7 +159,7 @@ class PythonGetAttrDefLxml(BaseFunctionDefinition):
 class CythonGetAttrDef(BaseFunctionDefinition):
     function = cy_textparse.get_attr
     reference = "cythonpowered.textparse.get_attr()"
-    usage = REPLACEMENT
+    usage = "Takes single tag string as input, not a document"
 
 
 class PythonExtractIpsDef(BaseFunctionDefinition):
@@ -181,7 +181,7 @@ class PythonExtractEmailsDef(BaseFunctionDefinition):
 class CythonExtractEmailsDef(BaseFunctionDefinition):
     function = cy_textparse.get_emails
     reference = "cythonpowered.textparse.get_emails()"
-    usage = REPLACEMENT
+    usage = f"{REPLACEMENT}, ASCII only"
 
 
 class PythonExtractMacAddrsDef(BaseFunctionDefinition):

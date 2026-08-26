@@ -61,13 +61,15 @@ pip install cythonpowered
 
 | # | Cythonpowered function | Replaces (Python function) | Usage / details |
 |---|---|---|---|
-| 21 | cythonpowered.textparse.html.get_text()   | BeautifulSoup().get_text()                   | Drop-in replacement                                                        |
-| 22 | cythonpowered.textparse.html.find()       | BeautifulSoup().find()                       | Drop-in replacement                                                        |
-| 23 | cythonpowered.textparse.html.find_all()   | BeautifulSoup().find_all()                   | Drop-in replacement                                                        |
-| 24 | cythonpowered.textparse.get_attr()        | BeautifulSoup().find().get()                 | Drop-in replacement                                                        |
+| 21 | cythonpowered.textparse.html.get_text()   | BeautifulSoup().get_text()                   | Drop-in replacement, no HTML entity decoding                               |
+| 22 | cythonpowered.textparse.html.find()       | BeautifulSoup().find()                       | Drop-in replacement, raw substring                                         |
+| 23 | cythonpowered.textparse.html.find_all()   | BeautifulSoup().find_all()                   | Drop-in replacement, raw substrings                                        |
+| 24 | cythonpowered.textparse.get_attr()        | BeautifulSoup().find().get()                 | Takes single tag string as input, not a document                           |
 | 25 | cythonpowered.textparse.get_ips()         | re.findall(...) implementation to get IPs    | Drop-in replacement                                                        |
-| 26 | cythonpowered.textparse.get_emails()      | re.findall(...) implementation to get emails | Drop-in replacement                                                        |
-| 27 | cythonpowered.textparse.get_mac_addrs()   | re.findall(...) implementation to get MACs   | Drop-in replacement                                                        |
+| 26 | cythonpowered.textparse.get_emails()      | re.findall(...) implementation to get emails | Drop-in replacement, ASCII only                                            |
+| 27 | cythonpowered.textparse.get_mac_addrs()   | re.findall(...) implementation to get MACs   | Drop-in replacement 
+
+
 
 Note: `get_attr()` operates on a single tag string (e.g. the result of `html.find()`), not on a full HTML document. Speedups are vs. BeautifulSoup; comparisons vs. `lxml` are in [BENCHMARKS.md](BENCHMARKS.md).
 
