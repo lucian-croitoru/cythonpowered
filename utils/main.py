@@ -1,9 +1,9 @@
 import argparse
 import sys
 
-from utils.benchmark.benchmark_runner import BenchmarkRunner
-from utils.definitions.list_functions import AllFunctionDefinitionPrinter
 from cythonpowered import VERSION
+from utils.benchmark import run_benchmark
+from utils.definitions import run_list
 
 TITLE = rf"""
                 _   _                                                      _
@@ -14,53 +14,6 @@ TITLE = rf"""
            |___/                      |_|
                                                                    v{VERSION}
 """
-
-
-def _check_benchmark_deps():
-    """Check for optional benchmark dependencies. Exit gracefully if missing."""
-    missing = []
-    try:
-        import pandas  # noqa: F401
-    except ImportError:
-        missing.append("pandas")
-    try:
-        import psutil  # noqa: F401
-    except ImportError:
-        missing.append("psutil")
-    try:
-        import cpuinfo  # noqa: F401
-    except ImportError:
-        missing.append("py-cpuinfo")
-    try:
-        from prettytable import PrettyTable  # noqa: F401
-    except ImportError:
-        missing.append("prettytable")
-    try:
-        import bs4  # noqa: F401
-    except ImportError:
-        missing.append("beautifulsoup4")
-
-    if missing:
-        print(
-            f"Benchmarking requires optional dependencies: {missing}"
-            f"Run 'pip install cythonpowered[utils]' to enable benchmarking."
-        )
-        sys.exit(0)
-
-
-def run_benchmark():
-    print(TITLE, flush=True)
-    _check_benchmark_deps()
-    BenchmarkRunner()
-
-
-def list_functions():
-    print(TITLE, flush=True)
-    AllFunctionDefinitionPrinter()
-
-
-def print_version():
-    print(VERSION)
 
 
 def main():
@@ -81,15 +34,17 @@ def main():
         parser.print_help()
 
     if args.benchmark is True:
+        print(TITLE, flush=True)
         run_benchmark()
         sys.exit(0)
 
     if args.list is True:
-        list_functions()
+        print(TITLE, flush=True)
+        run_list()
         sys.exit(0)
 
     if args.version is True:
-        print_version()
+        print(VERSION)
         sys.exit(0)
 
 
