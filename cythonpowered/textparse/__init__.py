@@ -1,6 +1,5 @@
 from cythonpowered.textparse.textparse import (
     html,
-    get_attr,
     get_ips,
     get_emails,
     get_mac_addrs,
@@ -8,7 +7,6 @@ from cythonpowered.textparse.textparse import (
 
 __all__ = [
     "html",
-    "get_attr",
     "get_ips",
     "get_emails",
     "get_mac_addrs",

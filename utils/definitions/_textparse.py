@@ -177,8 +177,8 @@ class PythonGetAttrDefLxmlForBenchmark(BaseFunctionDefinition):
 
 
 class CythonGetAttrDef(BaseFunctionDefinition):
-    function = cy_textparse.get_attr
-    reference = "cythonpowered.textparse.get_attr()"
+    function = cy_textparse.html.get_attr
+    reference = "cythonpowered.textparse.html.get_attr()"
     usage = "Takes single tag string as input, not a document"
 
 

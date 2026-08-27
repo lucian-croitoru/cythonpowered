@@ -17,6 +17,11 @@ class html:
     def find_all(html: str, tag: str, recursive: bool=True):
         return find_tag(html=html, tag=tag, find_all=True, recursive=recursive)
 
+    @staticmethod
+    def get_attr(str tag, str attr):
+        return get_html_attr(tag=tag, attr=attr)
+
+
 
 # -----------------------------------------------------------------------------
 cdef inline list _html_strip_tags(str html, bint strip=False):
@@ -143,7 +148,7 @@ from cpython.unicode cimport (
     PyUnicode_READ
 )
 
-cpdef inline str get_attr(str tag, str attr):
+cpdef inline str get_html_attr(str tag, str attr):
     cdef:
         Py_ssize_t n = len(tag)
         Py_ssize_t m = len(attr)

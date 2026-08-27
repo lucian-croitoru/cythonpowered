@@ -142,7 +142,7 @@ def test_get_attr_vs_bs4(html, tag, attr):
     expected = py_get_attr_bs4(html, tag, attr)
     actual = tp.html.find(html, tag)
     if actual:
-        actual = tp.get_attr(actual, attr)
+        actual = tp.html.get_attr(actual, attr)
     assert actual == expected
 
 
@@ -151,7 +151,7 @@ def test_get_attr_vs_lxml(html, tag, attr):
     expected = py_get_attr_lxml(html, tag, attr)
     actual = tp.html.find(html, tag)
     if actual:
-        actual = tp.get_attr(actual, attr)
+        actual = tp.html.get_attr(actual, attr)
     assert actual == expected
 
 
