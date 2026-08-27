@@ -4,6 +4,12 @@ import calendar
 import pandas
 
 
+def test_interop():
+    one = datetime.date(2026, 1, 1)
+    two = cythonpowered.dateutil.date(2026, 1, 1)
+    assert one == two
+
+
 def test_today():
     one = datetime.date.today()
     two = cythonpowered.dateutil.date.today()

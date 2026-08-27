@@ -2,14 +2,15 @@
 Cython>=3.0.0
 setuptools==74.1.3
 wheel==0.43.0
-more-itertools==10.0.0
 packaging==24.0
 
-# Dependencies for utils (--benchmark | --list)
+# Dependencies for utils (--benchmark | --list) — optional extras
 prettytable>=3.0.0
 psutil>=6.0.0
 py-cpuinfo>=9.0.0
 pandas>=2.0.0
+beautifulsoup4>=4.0.0
+lxml>=6.0.0
 
 # Testing
 pytest>=8.0.0

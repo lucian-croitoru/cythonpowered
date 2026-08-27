@@ -32,8 +32,8 @@ class BaseFunctionDefinitionPrinter:
         table = PrettyTable()
         table.field_names = [
             "#",
-            "Python function",
-            "Is replaced by",
+            "Cythonpowered function",
+            "Replaces (Python function)",
             "Usage / details",
         ]
         for f in table.field_names:
@@ -45,8 +45,8 @@ class BaseFunctionDefinitionPrinter:
                 table.add_row(
                     [
                         i,
-                        pair[0].reference,
                         pair[1].reference,
+                        pair[0].reference,
                         pair[1].usage,
                     ]
                 )

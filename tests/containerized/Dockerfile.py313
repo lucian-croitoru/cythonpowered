@@ -14,15 +14,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy the source code
 COPY . .
 
-# Install the package from source
+# Install the package from source with benchmark dependencies
 # pip will automatically install setup_requires (build dependencies) and compile Cython modules
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir .[utils]
 
 # Verify installation
 RUN python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed successfully')"
 
 # Run basic import tests
-RUN python -c "from cythonpowered.random import *; from cythonpowered.dateutil import *; print('✓ Cython modules compiled and imported successfully')"
+RUN python -c "from cythonpowered.random import *; from cythonpowered.dateutil import *; from cythonpowered.textparse import *; print('✓ All Cython modules compiled and imported successfully')"
 
 # Run benchmark to verify Cython build works
 RUN python3 -m utils.main -b

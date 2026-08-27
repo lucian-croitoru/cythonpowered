@@ -9,7 +9,7 @@ services:
     container_name: cythonpowered-test-py314
     environment:
       PYTHONUNBUFFERED: 1
-    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import *; from cythonpowered.dateutil import *; from cythonpowered.textparse import *; print('✓ All Cython modules compiled and working')"
 
   test-py313:
     build:
@@ -19,7 +19,7 @@ services:
     container_name: cythonpowered-test-py313
     environment:
       PYTHONUNBUFFERED: 1
-    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import *; from cythonpowered.dateutil import *; from cythonpowered.textparse import *; print('✓ All Cython modules compiled and working')"
 
   test-py312:
     build:
@@ -29,7 +29,7 @@ services:
     container_name: cythonpowered-test-py312
     environment:
       PYTHONUNBUFFERED: 1
-    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import *; from cythonpowered.dateutil import *; from cythonpowered.textparse import *; print('✓ All Cython modules compiled and working')"
 
   test-py311:
     build:
@@ -39,7 +39,7 @@ services:
     container_name: cythonpowered-test-py311
     environment:
       PYTHONUNBUFFERED: 1
-    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import *; from cythonpowered.dateutil import *; from cythonpowered.textparse import *; print('✓ All Cython modules compiled and working')"
 
   test-py310:
     build:
@@ -49,7 +49,7 @@ services:
     container_name: cythonpowered-test-py310
     environment:
       PYTHONUNBUFFERED: 1
-    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import *; from cythonpowered.dateutil import *; from cythonpowered.textparse import *; print('✓ All Cython modules compiled and working')"
 
   test-py39:
     build:
@@ -59,4 +59,5 @@ services:
     container_name: cythonpowered-test-py39
     environment:
       PYTHONUNBUFFERED: 1
-    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import random; print('✓ Cython modules compiled and working')"
+    command: python -c "import cythonpowered; print(f'✓ cythonpowered {cythonpowered.VERSION} installed'); from cythonpowered.random import *; from cythonpowered.dateutil import *; from cythonpowered.textparse import *; print('✓ All Cython modules compiled and working')"
+  
