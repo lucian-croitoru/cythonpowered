@@ -24,7 +24,7 @@ DESCRIPTION = "Cython-powered replacements for popular Python functions. And mor
 AUTHOR = "Lucian Croitoru"
 URL = "https://github.com/lucian-croitoru/cythonpowered"
 
-KEYWORDS = ["python", "cython", "performance", "random", "datetime", "dateutil"]
+KEYWORDS = ["python", "cython", "performance", "lightweight" "compiled"]
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
