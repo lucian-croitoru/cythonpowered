@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cythonpowered"
-version = "0.3.0"
+version = "0.3.1"
 description = "Cython-powered replacements for popular Python functions — compiled for performance."
 readme = "README.md"
 license = {text = "MIT"}

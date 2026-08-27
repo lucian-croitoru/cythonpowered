@@ -1,9 +1,12 @@
 # CHANGELOG
 
+### 0.3.1 - 2026-08-27
+- Minor tweaks to the CLI functionality
+
 ### 0.3.0 - 2026-08-27
 - Added the `textparse` module
 - License changed from `GPL-3.0` to `MIT`
-- Benchmark-only dependencies moved to optional `[benchmark]` extra
+- Benchmark-only dependencies moved to optional `[utils]` extra
 - `date.today()` now correctly uses `time.localtime()` — timezone changes after import no longer affect results
 - `date` class now has `__repr__`, `__str__`, `__eq__`, `__hash__` for better interoperability with `datetime.date`
 
