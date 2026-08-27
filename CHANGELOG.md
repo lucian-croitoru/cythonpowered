@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### 0.3.0 - 2026-05-28
+### 0.3.0 - 2026-08-27
 - Added the `textparse` module
 - License changed from `GPL-3.0` to `MIT`
 - Benchmark-only dependencies moved to optional `[benchmark]` extra
