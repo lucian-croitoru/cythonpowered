@@ -20,11 +20,11 @@ if py_subver not in range(9, 15):
 NAME = "cythonpowered"
 VERSION = "0.3.1"
 LICENSE = "MIT"
-DESCRIPTION = "Cython-powered replacements for popular Python functions. And more."
+DESCRIPTION = "Cython-powered replacements for popular Python functions — compiled for performance."
 AUTHOR = "Lucian Croitoru"
 URL = "https://github.com/lucian-croitoru/cythonpowered"
 
-KEYWORDS = ["python", "cython", "performance", "lightweight" "compiled"]
+KEYWORDS = ["python", "cython", "performance", "lightweight", "compiled"]
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

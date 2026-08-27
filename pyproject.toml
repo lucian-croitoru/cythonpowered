@@ -16,7 +16,7 @@ license = {text = "MIT"}
 authors = [
     {name = "Lucian Croitoru"},
 ]
-keywords = ["python", "cython", "performance", "random", "datetime", "dateutil", "textparse"]
+keywords = ["python", "cython", "performance", "lightweight", "compiled"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
