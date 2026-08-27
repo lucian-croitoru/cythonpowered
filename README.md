@@ -4,7 +4,7 @@ Cython-powered replacements for popular Python functions — compiled for perfor
 
 [![PyPI version](https://img.shields.io/pypi/v/cythonpowered.svg)](https://pypi.org/project/cythonpowered/)
 [![Python versions](https://img.shields.io/pypi/pyversions/cythonpowered.svg)](https://pypi.org/project/cythonpowered/)
-[![License](https://img.shields.io/pypi/l/cythonpowered.svg)](LICENSE)
+[![License](https://img.shields.io/pypi/l/cythonpowered.svg)](https://github.com/lucian-croitoru/cythonpowered/blob/main/LICENSE)
 
 ## What cythonpowered IS
 
@@ -17,7 +17,7 @@ Cython-powered replacements for popular Python functions — compiled for perfor
 
 - A wrapper or fork of an existing Python library. Every function is implemented from scratch in Cython — cythonpowered does not re-export, subclass, or bind to CPython internals or third-party packages; it stands on its own.
 - A 100% drop-in replacement for the libraries it draws inspiration from. Functions target the most common use cases and mirror familiar interfaces, but edge-case behavior or supported options may differ from the originals.
-- A universal speedup guarantee. Functions are designed to outperform the pure-Python equivalents they replace, and most deliver measurable gains — see [BENCHMARKS.md](BENCHMARKS.md). Exact speedups vary with hardware, OS, Python version, C compiler, data and usage patterns, so benchmark on your own workload before relying on specific figures.
+- A universal speedup guarantee. Functions are designed to outperform the pure-Python equivalents they replace, and most deliver measurable gains — see [BENCHMARKS.md](https://github.com/lucian-croitoru/cythonpowered/blob/main/BENCHMARKS.md). Exact speedups vary with hardware, OS, Python version, C compiler, data and usage patterns, so benchmark on your own workload before relying on specific figures.
 
 ## Quick Start
 
@@ -71,9 +71,7 @@ pip install cythonpowered
 
 
 
-Note: `get_attr()` operates on a single tag string (e.g. the result of `html.find()`), not on a full HTML document. Speedups are vs. BeautifulSoup; comparisons vs. `lxml` are in [BENCHMARKS.md](BENCHMARKS.md).
-
-See [BENCHMARKS.md](BENCHMARKS.md) for full benchmark data.
+Note: `get_attr()` operates on a single tag string (e.g. the result of `html.find()`), not on a full HTML document. Speedups are vs. BeautifulSoup; comparisons vs. `lxml` are in [BENCHMARKS.md](https://github.com/lucian-croitoru/cythonpowered/blob/main/BENCHMARKS.md). See this file for full benchmark data.
 
 ## Installation
 
@@ -97,8 +95,8 @@ cythonpowered --version    # print the package version
 
 ## Links
 
-- [Changelog](CHANGELOG.md)
-- [Benchmarks](BENCHMARKS.md)
-- [Contributing](CONTRIBUTING.md)
-- [Development](DEVELOPMENT.md)
+- [Changelog](https://github.com/lucian-croitoru/cythonpowered/blob/main/CHANGELOG.md)
+- [Benchmarks](https://github.com/lucian-croitoru/cythonpowered/blob/main/BENCHMARKS.md)
+- [Contributing](https://github.com/lucian-croitoru/cythonpowered/blob/main/CONTRIBUTING.md)
+- [Development](https://github.com/lucian-croitoru/cythonpowered/blob/main/DEVELOPMENT.md)
 - [GitHub](https://github.com/lucian-croitoru/cythonpowered)
