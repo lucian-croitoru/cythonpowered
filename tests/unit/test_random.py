@@ -24,6 +24,19 @@ def test_random():
         assert result <= FLOAT_INTERVAL[1]
 
 
+def test_random_precision_is_32bit():
+    """random() documents a deliberate deviation from the stdlib: 32-bit
+    precision instead of random.random()'s 53 bits. Every value must
+    therefore be an exact multiple of 2**-32."""
+    # Stage 1: draw values and scale back to the 32-bit lattice.
+    # Stage 2: each scaled value must be exactly integral (dyadic rationals
+    # k / 2**32 round-trip exactly through double).
+    for i in range(1000):
+        result = cythonpowered.random.random()
+        scaled = result * 2**32
+        assert scaled == round(scaled)
+
+
 def test_n_random():
     """n_random(n) must return exactly n distinct random floats, each in
     [0, 1] — the batched equivalent of [random.random() for i in range(n)]."""
@@ -89,11 +102,12 @@ def test_randint_single_value_range():
 
 def test_randint_full_32bit_range():
     """randint over the full 32-bit range (span 2**32) must stay inside
-    [-2**31, 2**31 - 1]. This span exceeds 2**31, so it exercises the
-    two-draw 62-bit code path instead of the single-draw one."""
+    [-2**31, 2**31 - 1]. This span equals the full 32-bit draw space of the
+    xorshift128 generator, so it exercises the no-rejection path where every
+    draw is accepted as-is."""
     lo, hi = -2**31, 2**31 - 1
-    # Stage 1: draw from the extreme state where the span overflows the
-    # 31-bit output of lrand48().
+    # Stage 1: draw from the extreme state where the span covers the entire
+    # 32-bit output of the generator.
     # Stage 2: every value must land inside the full int32 interval.
     for i in range(1000):
         result = cythonpowered.random.randint(lo, hi)
@@ -104,7 +118,8 @@ def test_randint_full_32bit_range():
 def test_randint_uniformity():
     """randint(0, 3) must distribute draws evenly: each of the 4 values
     should appear ~25% of the time. This catches modulo bias, since
-    lrand48() % n is not uniform when n does not divide 2**31."""
+    x % n is not uniform when n does not divide 2**32 (the number of
+    possible 32-bit draws)."""
     # Stage 1: build a histogram of 40000 draws over the 4 values.
     counts = [0, 0, 0, 0]
     for i in range(40000):
