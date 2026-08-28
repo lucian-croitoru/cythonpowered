@@ -80,7 +80,7 @@ The project relies on these being followed manually — there is no tooling that
 - `language_level=3` is set in the build config — keep it.
 - The build config (`cythonize(...)`) must always keep the **safe Cython 3.x defaults**: `boundscheck=True`, `wraparound=True`, `cdivision=False`, `overflowcheck=False`. **Never set unsafe values at the compiler/build level** — that would silently apply to every module, including ones that have never been audited.
 - **Opting out is per-module, not global.** A module may disable checks only via a module-level `# cython:` pragma at the top of its `.pyx` file (e.g. `# cython: boundscheck=False, wraparound=False, cdivision=True`), and only if it adds no risk to **any** function defined in that module. Before adding the pragma, audit every function in the module:
-  1. every C array index is validated or clamped (note: `boundscheck` does not cover C arrays anyway — see §6.1);
+  1. every C array index is validated or clamped (`boundscheck` does not apply to typed C arrays, so validation is still required);
   2. no unsigned expression can wrap unexpectedly;
   3. no division or modulo by a value that can be zero;
   4. no code path relies on negative-index wraparound (if `wraparound=False`);
@@ -102,7 +102,7 @@ The project relies on these being followed manually — there is no tooling that
 ## 9. Performance guidelines
 
 - **Measure before and after.** Use the existing benchmark framework; every new function gets a benchmark definition (see §10).
-- Target: beat the pure-Python original by a meaningful margin (see `BENCHMARKS.md`). 1.05× on a simple function is acceptable; 5× on unmaintainable code is not. Some functions may be slower with Cython, but they should not be eliminated if they contribute to module completeness or are used internally by other functions.
+- Target: beat the pure-Python original by a meaningful margin (see `BENCHMARKS.md`). 1.05× on a simple function is acceptable; 2× - 5× on complex code is expected; >10× is not uncommon. Some functions may be slower with Cython, but they should not be eliminated if they contribute to module completeness or are used internally by other functions.
 - Preferred optimization techniques, in order of preference:
   1. Typed local variables and `cpdef`/`cdef` signatures (eliminate Python dispatch overhead)
   2. Batched `n_*` variants that replace list comprehensions
@@ -117,15 +117,15 @@ The project relies on these being followed manually — there is no tooling that
 1. Implement in the module's `.pyx` following §5–§6.
 2. Re-export from the module's `__init__.py`.
 3. Add tests (cross-validation + edge cases, §8).
-4. Add a row to the module table in `README.md` (note any deviation from the original in the "Usage / details" column).
-5. Register the function in the project's listing and benchmark tooling — follow `CONTRIBUTING.md` and the existing per-module definition/benchmark files for the current pattern.
+4. Add a row to the module table in `README.md`.
+5. Register the function in the project's listing and benchmark tooling — consult `CONTRIBUTING.md` and existing per-module definition/benchmark files for the current pattern.
 6. Rebuild (`python setup.py build_ext --inplace`) and run `pytest`.
 7. Add a `CHANGELOG.md` entry.
 
 ## 11. Adding a new module
 
 - Create `cythonpowered/<name>/<name>.pyx` + `__init__.py`.
-- Register the module in the build config (`setup.py` / `pyproject.toml`), the top-level package metadata, and the listing/benchmark tooling — follow `CONTRIBUTING.md` for the current registration points.
+- Register the module in the build config (`setup.py` / `pyproject.toml`), the top-level package metadata, and the listing/benchmark tooling — consult `CONTRIBUTING.md` for the current registration points.
 - Create the module's test file and register it with the test runner.
 - Update `README.md` and `CHANGELOG.md`.
 
@@ -133,14 +133,15 @@ The project relies on these being followed manually — there is no tooling that
 
 - Public functions return plain Python types (`str`, `int`, `list`, `tuple`) matching the original.
 - **Mirroring is "as close as practical" (§2)**: where exact parity is impossible, the deviation must be deliberate, documented in the `README.md` table and the function docstring, and covered by a test.
-- Extension types that mirror a stdlib type must interop with it: `__eq__` should compare correctly against **both** the Cython type and the stdlib type, and whenever `__eq__` crosses types, `__hash__` must match the stdlib hash (delegate to the stdlib hash if needed). `__repr__`/`__str__` should match stdlib formatting.
+- Extension types that mirror a stdlib type must interop with it: `__eq__` should compare correctly against **both** the Cython type and the stdlib type, and whenever `__eq__` crosses types, `__hash__` must match the stdlib hash (delegate to the stdlib hash if needed). `__repr__`/`__str__` should match stdlib formatting; if the original lacks `__repr__`/`__str__`, provide a reasonable default.
 - Keyword argument names match the Python original where the original has kwargs.
 
 ## 13. Versioning & release
 
 - The version is duplicated across the build config and the top-level package `__init__.py` — update **all copies** on release.
-- Every user-visible change gets a `CHANGELOG.md` entry.
+- Every release gets a `CHANGELOG.md` entry.
 - Build/publish workflow: see `DEVELOPMENT.md`.
+- DO NOT PERFORM ANY GIT COMMITS OR PUSHES. DO NOT PUBLISH TO PYPY.ORG YOURSELF.
 
 ## 14. Anti-patterns (do not do)
 
