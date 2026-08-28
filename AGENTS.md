@@ -142,7 +142,7 @@ The project relies on these being followed manually — there is no tooling that
 - The version is duplicated across the build config and the top-level package `__init__.py` — update **all copies** on release.
 - Every release gets a `CHANGELOG.md` entry.
 - Build/publish workflow: see `DEVELOPMENT.md`.
-- DO NOT PERFORM ANY GIT COMMITS OR PUSHES. DO NOT PUBLISH TO PYPY.ORG YOURSELF.
+- Do not perform any git commits or pushes. Do not publish to pypi.org yourself.
 
 ## 14. Anti-patterns (do not do)
 
