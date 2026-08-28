@@ -98,6 +98,7 @@ The project relies on these being followed manually — there is no tooling that
 - If the Python original raises on an input, the Cython version must raise the **same exception type** — assert with `pytest.raises`.
 - Random tests stay deterministic: assert distribution properties (range, subset, length, distinctness), never specific values.
 - Tests run against the freshly rebuilt extension (see §4).
+- Ensure all unit tests contain appropriate doscstrings and comments to explain their goal and diffent states in different stages.
 
 ## 9. Performance guidelines
 
