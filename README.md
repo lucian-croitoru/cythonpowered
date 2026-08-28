@@ -31,7 +31,7 @@ pip install cythonpowered
 
 | # | Cythonpowered function | Replaces (Python function) | Usage / details |
 |---|---|---|---|
-|  1 | cythonpowered.random.random()             | random.random()                              | Drop-in replacement                                                        |
+|  1 | cythonpowered.random.random()             | random.random()                              | Drop-in replacement, 32-bit precision                    |
 |  2 | cythonpowered.random.n_random()           | random.random()                              | n_random(k) replaces [random() for i in range(k)]                          |
 |  3 | cythonpowered.random.randint()            | random.randint()                             | Drop-in replacement                                                        |
 |  4 | cythonpowered.random.n_randint()          | random.randint()                             | n_randint(a, b, k) replaces [randint(a, b) for i in range(k)]              |
