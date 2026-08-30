@@ -3,6 +3,16 @@
 # Single-pass C scanning, no regex compilation, no backtracking
 # -----------------------------------------------------------------------------
 
+from cpython.unicode cimport (
+    PyUnicode_KIND,
+    PyUnicode_DATA,
+    PyUnicode_READ,
+    PyUnicode_AsUTF8AndSize,
+    PyUnicode_DecodeUTF8
+)
+from libc.string cimport memchr
+
+
 class html:
     """Fast raw-string HTML extraction (text, tags, attributes)."""
 
@@ -82,48 +92,79 @@ cdef inline Py_UCS4 _ascii_lower(Py_UCS4 c):
 
 
 # -----------------------------------------------------------------------------
-cdef inline str _tag_name_at(str html, Py_ssize_t tag_open, Py_ssize_t close_pos):
+cdef inline bint _tag_name_is_at(
+    int kind,
+    void* data,
+    Py_ssize_t tag_open,
+    Py_ssize_t close_pos,
+    const char* name,
+    Py_ssize_t name_len
+):
     """
-    Lowercase tag name of the tag opened at tag_open (position of '<')
-    and closed at close_pos (position of '>'); bounds are exclusive.
-    A leading '/' (closing tag) is skipped.
+    True if the tag opened at tag_open (position of '<') and closed at
+    close_pos (position of '>') has the given ASCII name, compared
+    case-insensitively; `name` must be lowercase. A leading '/' (closing
+    tag) is skipped. The name must be terminated by whitespace, '>' or
+    '/', so e.g. <scriptfoo> does not match 'script'.
+
+    kind/data are the cached PyUnicode internals of the source string
+    (PyUnicode_KIND/PyUnicode_DATA); this keeps the check allocation-free
+    (the old version built a lowercased substring per tag).
     """
     cdef Py_ssize_t j = tag_open + 1
-    cdef Py_ssize_t name_start
+    cdef Py_ssize_t k
     cdef Py_UCS4 ch
 
-    if j < close_pos and html[j] == '/':
+    if j < close_pos and PyUnicode_READ(kind, data, j) == 47:  # '/'
         j += 1
 
-    name_start = j
+    # The name occupies exactly name_len chars, terminated by a name
+    # boundary (same rules as the tag-name scan).
+    if j + name_len > close_pos:
+        return False
 
-    while j < close_pos:
-        ch = <Py_UCS4>ord(html[j])
-        if ch <= 32 or ch == 62 or ch == 47:  # whitespace, '>', '/'
-            break
-        j += 1
+    ch = PyUnicode_READ(kind, data, j + name_len)
+    if not (ch <= 32 or ch == 62 or ch == 47):  # whitespace, '>', '/'
+        return False
 
-    return html[name_start:j].lower()
+    for k in range(name_len):
+        if _ascii_lower(PyUnicode_READ(kind, data, j + k)) != <Py_UCS4>(<unsigned char>name[k]):
+            return False
+
+    return True
 
 
-cdef inline bint _is_self_closing_at(str html, Py_ssize_t tag_open, Py_ssize_t close_pos):
+cdef inline bint _is_self_closing_at(
+    int kind,
+    void* data,
+    Py_ssize_t tag_open,
+    Py_ssize_t close_pos
+):
     """
     True if the tag opened at tag_open ('<') and closed at close_pos ('>')
     is explicitly self-closing, e.g. <foo /> or <foo/>.
+    kind/data are the cached PyUnicode internals of the source string.
     """
     cdef Py_ssize_t j = close_pos - 1
     cdef Py_UCS4 ch
 
     while j > tag_open:
-        ch = <Py_UCS4>ord(html[j])
+        ch = PyUnicode_READ(kind, data, j)
         if ch > 32:
             break
         j -= 1
 
-    return j > tag_open and html[j] == '/'
+    return j > tag_open and PyUnicode_READ(kind, data, j) == 47  # '/'
 
 
-cdef inline Py_ssize_t _find_closing_raw_tag(str html, Py_ssize_t i, Py_ssize_t n, str name):
+cdef inline Py_ssize_t _find_closing_raw_tag(
+    int kind,
+    void* data,
+    Py_ssize_t i,
+    Py_ssize_t n,
+    const char* name,
+    Py_ssize_t name_len
+):
     """
     html[i] is a '<' inside <script>/<style> content. If the tag at i is
     the closing tag for `name` (e.g. </script>), return the index just
@@ -131,28 +172,34 @@ cdef inline Py_ssize_t _find_closing_raw_tag(str html, Py_ssize_t i, Py_ssize_t 
 
     The name must be followed by whitespace, '>' or '/' so that
     </scriptfoo> does not close a <script> block.
+    kind/data are the cached PyUnicode internals of the source string.
     """
     cdef Py_ssize_t j = i + 1
     cdef Py_ssize_t name_start
+    cdef Py_ssize_t k
     cdef Py_UCS4 ch
 
-    if j >= n or html[j] != '/':
+    if j >= n or PyUnicode_READ(kind, data, j) != 47:  # '/'
         return -1
     j += 1
 
     name_start = j
     while j < n:
-        ch = <Py_UCS4>ord(html[j])
+        ch = PyUnicode_READ(kind, data, j)
         if ch <= 32 or ch == 62 or ch == 47:  # whitespace, '>', '/'
             break
         j += 1
 
-    # Length check first so the (rare) slice allocation only happens on a
-    # candidate with the right name length.
-    if j - name_start != len(name) or html[name_start:j].lower() != name:
+    # Length check first so the character-by-character compare only runs
+    # on a candidate with the right name length.
+    if j - name_start != name_len:
         return -1
 
-    while j < n and html[j] != '>':
+    for k in range(name_len):
+        if _ascii_lower(PyUnicode_READ(kind, data, name_start + k)) != <Py_UCS4>(<unsigned char>name[k]):
+            return -1
+
+    while j < n and PyUnicode_READ(kind, data, j) != 62:  # '>'
         j += 1
 
     if j >= n:
@@ -170,7 +217,13 @@ cdef inline list _html_strip_tags(str html):
     text, and <script>/<style> blocks (content dropped, like bs4/lxml).
     A tag starts only when '<' is followed by an ASCII letter, '/' or '?'
     (HTML5 data state), so 'a < b' stays plain text.
+
+    The scan reads characters through the CPython unicode C API
+    (PyUnicode_READ on the cached kind/data) so each character is a
+    direct memory read instead of a Python-level str index + ord() pair.
     """
+    cdef int kind = PyUnicode_KIND(html)
+    cdef void* data = PyUnicode_DATA(html)
     cdef Py_ssize_t i = 0
     cdef Py_ssize_t n = len(html)
     cdef Py_ssize_t text_start = 0
@@ -183,14 +236,13 @@ cdef inline list _html_strip_tags(str html):
     cdef bint in_style = False
     cdef Py_UCS4 ch
     cdef Py_UCS4 quote = 0
-    cdef str name
 
     while i < n:
-        ch = <Py_UCS4>ord(html[i])
+        ch = PyUnicode_READ(kind, data, i)
 
         # ---------------- comment ----------------
         if in_comment:
-            if ch == 62 and i >= 2 and html[i - 2:i] == '--':  # '>'
+            if ch == 62 and i >= 2 and PyUnicode_READ(kind, data, i - 2) == 45 and PyUnicode_READ(kind, data, i - 1) == 45:  # '>' after '--'
                 in_comment = False
                 i += 1
                 text_start = i
@@ -201,7 +253,10 @@ cdef inline list _html_strip_tags(str html):
         # ---------------- script / style content ----------------
         if in_script or in_style:
             if ch == 60:  # '<'
-                j = _find_closing_raw_tag(html, i, n, 'script' if in_script else 'style')
+                if in_script:
+                    j = _find_closing_raw_tag(kind, data, i, n, b"script", 6)
+                else:
+                    j = _find_closing_raw_tag(kind, data, i, n, b"style", 5)
                 if j >= 0:
                     in_script = False
                     in_style = False
@@ -220,11 +275,10 @@ cdef inline list _html_strip_tags(str html):
                 quote = ch
             elif ch == 62:  # '>'
                 in_tag = False
-                if html[tag_open + 1] != '/':
-                    name = _tag_name_at(html, tag_open, i)
-                    if name == 'script' and not _is_self_closing_at(html, tag_open, i):
+                if PyUnicode_READ(kind, data, tag_open + 1) != 47:  # not '/'
+                    if _tag_name_is_at(kind, data, tag_open, i, b"script", 6) and not _is_self_closing_at(kind, data, tag_open, i):
                         in_script = True
-                    elif name == 'style' and not _is_self_closing_at(html, tag_open, i):
+                    elif _tag_name_is_at(kind, data, tag_open, i, b"style", 5) and not _is_self_closing_at(kind, data, tag_open, i):
                         in_style = True
                 text_start = i + 1
             i += 1
@@ -233,8 +287,8 @@ cdef inline list _html_strip_tags(str html):
         # ---------------- plain text ----------------
         if ch == 60:  # '<'
             if i + 1 < n:
-                ch = <Py_UCS4>ord(html[i + 1])
-                if ch == 33 and i + 3 < n and html[i + 2:i + 4] == '--':  # '!'
+                ch = PyUnicode_READ(kind, data, i + 1)
+                if ch == 33 and i + 3 < n and PyUnicode_READ(kind, data, i + 2) == 45 and PyUnicode_READ(kind, data, i + 3) == 45:  # '!' + '--'
                     if text_start < i:
                         parts.append(html[text_start:i])
                     in_comment = True
@@ -288,12 +342,6 @@ cpdef inline str html_get_text(str html, bint strip=False):
 
 
 # -----------------------------------------------------------------------------
-from cpython.unicode cimport (
-    PyUnicode_KIND,
-    PyUnicode_DATA,
-    PyUnicode_READ
-)
-
 cpdef inline str get_html_attr(str tag, str attr):
     """
     Get the value of an attribute from a single tag string, e.g.
@@ -505,9 +553,6 @@ cpdef inline str get_html_attr(str tag, str attr):
 # Fast HTML tag search
 # -----------------------------------------------------------------------------
 
-from cpython.unicode cimport PyUnicode_AsUTF8AndSize, PyUnicode_DecodeUTF8
-
-
 # -----------------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------------
@@ -644,22 +689,38 @@ cdef inline Py_ssize_t find_tag_end(
 ):
     cdef:
         Py_ssize_t i = start
+        Py_ssize_t gt
+        const char* p
+        const char* q
         char quote = 0
 
     while i < n:
 
         if quote != 0:
-            if buf[i] == quote:
-                quote = 0
+            # Jump straight to the closing quote.
+            p = <const char*>memchr(buf + i, quote, n - i)
+            if p == NULL:
+                return n
+            i = p - buf + 1
+            quote = 0
+            continue
 
-        else:
-            if buf[i] == '"' or buf[i] == "'":
-                quote = buf[i]
+        # Position of the next '>'.
+        p = <const char*>memchr(buf + i, '>', n - i)
+        if p == NULL:
+            return n
+        gt = p - buf
 
-            elif buf[i] == '>':
-                return i
+        # Is a quote opened before that '>'?
+        q = <const char*>memchr(buf + i, '"', gt - i)
+        if q == NULL:
+            q = <const char*>memchr(buf + i, "'", gt - i)
 
-        i += 1
+        if q == NULL:
+            return gt
+
+        quote = buf[q - buf]
+        i = q - buf + 1
 
     return n
 
@@ -832,6 +893,7 @@ cpdef inline find_tag(
     cdef:
         Py_ssize_t n
         const char* buf
+        const char* p
 
         const char* tag_ptr
         Py_ssize_t tag_len
@@ -885,10 +947,11 @@ cpdef inline find_tag(
 
     while i < n:
 
-        # Find next '<'
-        if buf[i] != '<':
-            i += 1
-            continue
+        # Find next '<' (memchr skips text runs in one libc call).
+        p = <const char*>memchr(buf + i, '<', n - i)
+        if p == NULL:
+            break
+        i = p - buf
 
         open_start = i
 
@@ -921,7 +984,8 @@ cpdef inline find_tag(
         if tag_type == 2:
             i = open_end + 1
 
-            if depth > 0:
+            # depth is only consulted when recursive=False.
+            if not recursive and depth > 0:
                 depth -= 1
 
             continue
@@ -1012,12 +1076,11 @@ cpdef inline find_tag(
 
                 while j < n:
 
-                    # Find next '<'
-                    while j < n and buf[j] != '<':
-                        j += 1
-
-                    if j >= n:
+                    # Find next '<' (memchr skips text runs in one libc call).
+                    p = <const char*>memchr(buf + j, '<', n - j)
+                    if p == NULL:
                         break
+                    j = p - buf
 
                     # -----------------------------------------------------
                     # Parse next tag.
@@ -1100,16 +1163,19 @@ cpdef inline find_tag(
         # Move to the next opening tag.
         # ---------------------------------------------------------------------
 
-        # Void/self-closing tags don't increase depth.
-        if not is_void_tag(
-            buf + name_start,
-            name_end - name_start
-        ) and not is_self_closing(
-            buf,
-            open_start,
-            open_end
-        ):
-            depth += 1
+        # depth is only consulted when recursive=False, so the per-tag
+        # void/self-closing checks are skipped in the default mode.
+        if not recursive:
+            # Void/self-closing tags don't increase depth.
+            if not is_void_tag(
+                buf + name_start,
+                name_end - name_start
+            ) and not is_self_closing(
+                buf,
+                open_start,
+                open_end
+            ):
+                depth += 1
 
         i = open_end + 1
 
@@ -1147,6 +1213,8 @@ cpdef inline list get_ips(str text):
     ASCII only (the regex original's \\d also matches Unicode digits).
     Replacement for: re.findall(r"(?<![.\\d])(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})(?![.\\d])", text)
     """
+    cdef int kind = PyUnicode_KIND(text)
+    cdef void* data = PyUnicode_DATA(text)
     cdef Py_ssize_t i = 0
     cdef Py_ssize_t n = len(text)
     cdef list result = []
@@ -1156,12 +1224,12 @@ cpdef inline list get_ips(str text):
     cdef Py_ssize_t octets_found = 0
 
     while i < n:
-        if not _is_ascii_digit(<Py_UCS4>ord(text[i])):
+        if not _is_ascii_digit(PyUnicode_READ(kind, data, i)):
             i += 1
             continue
 
         # Word boundary: no digit before
-        if i > 0 and _is_ascii_digit(<Py_UCS4>ord(text[i - 1])):
+        if i > 0 and _is_ascii_digit(PyUnicode_READ(kind, data, i - 1)):
             i += 1
             continue
 
@@ -1172,8 +1240,8 @@ cpdef inline list get_ips(str text):
             octet_start = j
             octet_val = 0
             # Limit to 3 digits per octet (valid IPv4 octets: 0-255, max 3 digits)
-            while j < n and (j - octet_start) < 3 and _is_ascii_digit(<Py_UCS4>ord(text[j])):
-                octet_val = octet_val * 10 + (<unsigned short>(<int>ord(text[j]) - 48))
+            while j < n and (j - octet_start) < 3 and _is_ascii_digit(PyUnicode_READ(kind, data, j)):
+                octet_val = octet_val * 10 + (<unsigned short>(<int>PyUnicode_READ(kind, data, j) - 48))
                 j += 1
 
             if j == octet_start:
@@ -1185,16 +1253,16 @@ cpdef inline list get_ips(str text):
             octets_found += 1
 
             if octets_found < 4:
-                if j >= n or text[j] != '.':
+                if j >= n or PyUnicode_READ(kind, data, j) != 46:  # '.'
                     break
                 j += 1
 
         if octets_found == 4:
             # Word boundary: no digit or dot adjacent
-            if i > 0 and (text[i - 1] == '.' or _is_ascii_digit(<Py_UCS4>ord(text[i - 1]))):
+            if i > 0 and (PyUnicode_READ(kind, data, i - 1) == 46 or _is_ascii_digit(PyUnicode_READ(kind, data, i - 1))):
                 i += 1
                 continue
-            if j < n and (text[j] == '.' or _is_ascii_digit(<Py_UCS4>ord(text[j]))):
+            if j < n and (PyUnicode_READ(kind, data, j) == 46 or _is_ascii_digit(PyUnicode_READ(kind, data, j))):
                 i += 1
                 continue
 
@@ -1220,6 +1288,8 @@ cpdef inline list get_emails(str text):
     ASCII only (the regex original's \\w also matches Unicode word chars).
     Replacement for: re.findall(r"[\\w.+-]+@[\\w.-]+\\.\\w{2,}", text)
     """
+    cdef int kind = PyUnicode_KIND(text)
+    cdef void* data = PyUnicode_DATA(text)
     cdef Py_ssize_t i = 0
     cdef Py_ssize_t n = len(text)
     cdef list result = []
@@ -1235,7 +1305,7 @@ cpdef inline list get_emails(str text):
     while i < n:
         # Find @ symbol
         scan_pos = i
-        while i < n and text[i] != '@':
+        while i < n and PyUnicode_READ(kind, data, i) != 64:  # '@'
             i += 1
         if i >= n:
             break
@@ -1248,7 +1318,7 @@ cpdef inline list get_emails(str text):
         # scanning right after the previous match end, so a candidate
         # match must start there or later.
         local_end = at_pos - 1
-        while local_end >= scan_pos and _is_local_char(<Py_UCS4>ord(text[local_end])):
+        while local_end >= scan_pos and _is_local_char(PyUnicode_READ(kind, data, local_end)):
             local_end -= 1
         local_start = local_end + 1
 
@@ -1258,7 +1328,7 @@ cpdef inline list get_emails(str text):
 
         # Domain: maximal run of domain chars after '@'
         domain_end = i
-        while domain_end < n and _is_domain_char(<Py_UCS4>ord(text[domain_end])):
+        while domain_end < n and _is_domain_char(PyUnicode_READ(kind, data, domain_end)):
             domain_end += 1
 
         # Find the rightmost dot in the domain that is followed by a run
@@ -1269,9 +1339,9 @@ cpdef inline list get_emails(str text):
         match_end = -1
         k = domain_end - 1
         while k > i and match_end < 0:
-            if text[k] == '.':
+            if PyUnicode_READ(kind, data, k) == 46:  # '.'
                 w = k + 1
-                while w < n and _is_ascii_word(<Py_UCS4>ord(text[w])):
+                while w < n and _is_ascii_word(PyUnicode_READ(kind, data, w)):
                     w += 1
                 if w - (k + 1) >= 2:
                     match_end = w
@@ -1302,6 +1372,8 @@ cpdef inline list get_mac_addrs(str text):
     'CD:11:22:33:44:55').
     Replacement for: re.findall(r"[0-9A-Fa-f]{2}[:-][0-9A-Fa-f]{2}[:-][0-9A-Fa-f]{2}[:-][0-9A-Fa-f]{2}[:-][0-9A-Fa-f]{2}[:-][0-9A-Fa-f]{2}", text)
     """
+    cdef int kind = PyUnicode_KIND(text)
+    cdef void* data = PyUnicode_DATA(text)
     cdef Py_ssize_t i = 0
     cdef Py_ssize_t n = len(text)
     cdef list result = []
@@ -1312,24 +1384,24 @@ cpdef inline list get_mac_addrs(str text):
     # A match is always exactly 17 characters: 6 hex pairs + 5 separators
     while i + 17 <= n:
         ok = (
-            _is_ascii_hex(<Py_UCS4>ord(text[i])) and
-            _is_ascii_hex(<Py_UCS4>ord(text[i + 1])) and
-            (text[i + 2] == ':' or text[i + 2] == '-')
+            _is_ascii_hex(PyUnicode_READ(kind, data, i)) and
+            _is_ascii_hex(PyUnicode_READ(kind, data, i + 1)) and
+            (PyUnicode_READ(kind, data, i + 2) == 58 or PyUnicode_READ(kind, data, i + 2) == 45)  # ':' or '-'
         )
 
         if ok:
             p = i + 3
             for pair in range(5):
                 if not (
-                    _is_ascii_hex(<Py_UCS4>ord(text[p])) and
-                    _is_ascii_hex(<Py_UCS4>ord(text[p + 1]))
+                    _is_ascii_hex(PyUnicode_READ(kind, data, p)) and
+                    _is_ascii_hex(PyUnicode_READ(kind, data, p + 1))
                 ):
                     ok = False
                     break
                 p += 2
 
                 if pair < 4:
-                    if text[p] != ':' and text[p] != '-':
+                    if PyUnicode_READ(kind, data, p) != 58 and PyUnicode_READ(kind, data, p) != 45:  # ':' or '-'
                         ok = False
                         break
                     p += 1
