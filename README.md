@@ -31,7 +31,7 @@ pip install cythonpowered
 
 | # | Cythonpowered function | Replaces (Python function) | Usage / details |
 |---|---|---|---|
-|  1 | cythonpowered.random.random()             | random.random()                              | Drop-in replacement, 32-bit precision                    |
+|  1 | cythonpowered.random.random()             | random.random()                              | Drop-in replacement, 32-bit precision                                      |
 |  2 | cythonpowered.random.n_random()           | random.random()                              | n_random(k) replaces [random() for i in range(k)]                          |
 |  3 | cythonpowered.random.randint()            | random.randint()                             | Drop-in replacement                                                        |
 |  4 | cythonpowered.random.n_randint()          | random.randint()                             | n_randint(a, b, k) replaces [randint(a, b) for i in range(k)]              |
@@ -39,6 +39,7 @@ pip install cythonpowered
 |  6 | cythonpowered.random.n_uniform()          | random.uniform()                             | n_uniform(a, b, k) replaces [uniform(a, b) for i in range(k)]              |
 |  7 | cythonpowered.random.choice()             | random.choice()                              | Drop-in replacement                                                        |
 |  8 | cythonpowered.random.choices()            | random.choices()                             | Drop-in replacement, only supports the 'k' keyword argument                |
+
 
 ### `cythonpowered.dateutil` — Date utilities
 
@@ -55,7 +56,8 @@ pip install cythonpowered
 | 17 | cythonpowered.dateutil.date.toordinal()   | datetime.date().toordinal()                  | Drop-in replacement, uses cythonpowered date object                        |
 | 18 | cythonpowered.dateutil.date().offset()    | datetime.date() +/- datetime.timedelta()     | Supports days/weeks/months/years offset, returns cythonpowered date object |
 | 19 | cythonpowered.dateutil.date().increment() | datetime.date() + datetime.timedelta(days=1) | Increments cythonpowered date object by 1 day                              |
-| 20 | cythonpowered.dateutil.date_range()       | pandas.date_range()                          | Uses cythonpowered date object, returns a list of date strings 
+| 20 | cythonpowered.dateutil.date_range()       | pandas.date_range()                          | Uses cythonpowered date object, returns a list of date strings             |
+
 
 ### `cythonpowered.textparse` — Text extraction
 
@@ -64,14 +66,14 @@ pip install cythonpowered
 | 21 | cythonpowered.textparse.html.get_text()   | BeautifulSoup().get_text()                   | Drop-in replacement, no HTML entity decoding                               |
 | 22 | cythonpowered.textparse.html.find()       | BeautifulSoup().find()                       | Drop-in replacement, raw substring                                         |
 | 23 | cythonpowered.textparse.html.find_all()   | BeautifulSoup().find_all()                   | Drop-in replacement, raw substrings                                        |
-| 24 | cythonpowered.textparse.get_attr()        | BeautifulSoup().find().get()                 | Takes single tag string as input, not a document                           |
+| 24 | cythonpowered.textparse.html.get_attr()   | BeautifulSoup().find().get()                 | Takes single tag string as input, not a document                           |
 | 25 | cythonpowered.textparse.get_ips()         | re.findall(...) implementation to get IPs    | Drop-in replacement, ASCII only                                            |
 | 26 | cythonpowered.textparse.get_emails()      | re.findall(...) implementation to get emails | Drop-in replacement, ASCII only                                            |
-| 27 | cythonpowered.textparse.get_mac_addrs()   | re.findall(...) implementation to get MACs   | Drop-in replacement 
+| 27 | cythonpowered.textparse.get_mac_addrs()   | re.findall(...) implementation to get MACs   | Drop-in replacement                                                        |
 
 
 
-Note: `get_attr()` operates on a single tag string (e.g. the result of `html.find()`), not on a full HTML document. `find()`/`find_all()` return raw substrings of the input (original tag-name case and attribute order are preserved; tag names are matched case-insensitively) and do not apply deep HTML error recovery (implicit end tags, foster parenting). Speedups are vs. BeautifulSoup; comparisons vs. `lxml` are in [BENCHMARKS.md](https://github.com/lucian-croitoru/cythonpowered/blob/main/BENCHMARKS.md). See this file for full benchmark data.
+Note: `get_attr()` operates on a single tag string (e.g. the result of `html.find()`), not on a full HTML document. `find()`/`find_all()` return raw substrings of the input (original tag-name case and attribute order are preserved; tag names are matched case-insensitively) and do not apply deep HTML error recovery (implicit end tags, foster parenting). See [BENCHMARKS.md](https://github.com/lucian-croitoru/cythonpowered/blob/main/BENCHMARKS.md) for full benchmark data (speedup comparison).
 
 ## Installation
 
