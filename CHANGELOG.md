@@ -1,5 +1,38 @@
 # CHANGELOG
 
+
+### 0.4.0 - 2026-08-31
+**general**
+ - Added `AGENTS.md` containing coding standards for accelerated agentic development
+ - Aligned the entire library to the standards
+ - Essential change summary below
+
+**textparse**
+- HTML fixes: non-ASCII text no longer corrupts results, bare `<` in text is handled, exact tag-name matching (`<scriptfoo>` ≠ `<script>`), case-insensitive tag/attribute names, `<wbr>` now a void element
+- `get_emails()` / `get_mac_addrs()` now match the original regex exactly (no empty local part, mixed MAC separators allowed, no word boundaries)
+- Various performance improvements
+
+**random**
+- Replaced the C library's 48-bit LCG with an inlined xorshift128 (period 2**128−1); state is now seeded exactly once at import
+- `random()` now offers 32-bit precision (`stdlib`: 53 bits)
+- `randint()` is now exactly uniform (rejection sampling) and raises `ValueError` when `a > b`
+- `choice()`/`choices()` raise `IndexError` on empty populations — matching `stdlib`
+- Various performance improvements
+
+
+**dateutil**
+- `date` validates fields in the constructor (`ValueError`, like `datetime.date`); `year`/`month`/`day` are now read-only
+- `offset()` no longer mutates its input and raises `OverflowError` outside 1..9999
+- `increment()` raises `OverflowError` at 9999-12-31
+- `fromordinal()` no longer overflows on large ordinals
+- `monthrange()` / `date_range()` / `tostring()` now raise on invalid input (matching `calendar`/ `pandas`)
+- Various performance improvements
+
+**setup.py**
+- Dropped the NumPy-leftover `NPY_NO_DEPRECATED_API` macro
+- Always build with `-O2`
+- Made Cython 3.x safety flags explicit
+
 ### 0.3.2 - 2026-08-27
 - Using absolute links in README
 
