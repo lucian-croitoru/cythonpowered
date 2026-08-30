@@ -39,7 +39,10 @@ def py_find_lxml(html: str, tag: str, recursive: bool = True):
 
     found = doc.find(f"{pattern}{tag}")
     if found is not None:
-        return lxml.html.tostring(found, encoding="unicode")
+        # with_tail=False: serialize the element only (lxml includes the
+        # element's tail text by default, which bs4's decode() and the
+        # raw cythonpowered substring do not).
+        return lxml.html.tostring(found, encoding="unicode", with_tail=False)
     return None
 
 
@@ -50,9 +53,13 @@ def py_findall_lxml(html: str, tag: str, recursive: bool = True):
         pattern = "./"
 
     found = doc.findall(f"{pattern}{tag}")
-    if found:
-        return [lxml.html.tostring(tg, encoding="unicode") for tg in found]
-    return None
+    # Return [] (not None) on no match, consistent with bs4's find_all
+    # and the cythonpowered counterpart. with_tail=False: serialize the
+    # element only (lxml includes the element's tail text by default).
+    return [
+        lxml.html.tostring(tg, encoding="unicode", with_tail=False)
+        for tg in found
+    ]
 
 
 def py_get_attr_bs4(html: str, tag: str, attr: str):
@@ -190,7 +197,7 @@ class PythonExtractIpsDef(BaseFunctionDefinition):
 class CythonExtractIpsDef(BaseFunctionDefinition):
     function = cy_textparse.get_ips
     reference = "cythonpowered.textparse.get_ips()"
-    usage = REPLACEMENT
+    usage = f"{REPLACEMENT}, ASCII only"
 
 
 class PythonExtractEmailsDef(BaseFunctionDefinition):

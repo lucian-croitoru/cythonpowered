@@ -11,7 +11,7 @@ class PythonRandomRandomDef(BaseFunctionDefinition):
 class CythonRandomRandomDef(BaseFunctionDefinition):
     function = cy_random.random
     reference = "cythonpowered.random.random()"
-    usage = REPLACEMENT
+    usage = f"{REPLACEMENT}, 32-bit precision"
 
 
 class CythonRandomNRandomDef(BaseFunctionDefinition):

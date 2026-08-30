@@ -18,7 +18,7 @@ if py_subver not in range(9, 15):
 
 
 NAME = "cythonpowered"
-VERSION = "0.3.2"
+VERSION = "0.4.0"
 LICENSE = "MIT"
 DESCRIPTION = "Cython-powered replacements for popular Python functions — compiled for performance."
 AUTHOR = "Lucian Croitoru"
@@ -79,10 +79,9 @@ for f in cython_file_list:
         name=f["module_name"],
         sources=f["module_source"],
         language="c",
-        # TODO: re-enable -fopenmp, handle arm64 arch
-        # extra_compile_args=["-fopenmp"],
-        # extra_link_args=["-fopenmp"],
-        define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
+        extra_compile_args=["-O2"],
+        # -fopenmp (compile + link) is intentionally disabled for portability
+        # (arm64/MSVC). Re-enable only if a module actually uses prange/parallel.
     )
     cython_module_list.append(extension)
 
@@ -111,7 +110,18 @@ setup(
     keywords=KEYWORDS,
     classifiers=CLASSIFIERS,
     python_requires=">=3.9,<3.15",
-    ext_modules=cythonize(module_list=cython_module_list, language_level="3"),
+    ext_modules=cythonize(
+        module_list=cython_module_list,
+        language_level="3",
+        # Keep the safe Cython 3.x defaults explicit (AGENTS.md §7): never set
+        # unsafe values at the build level; opt out only via per-module pragmas.
+        compiler_directives={
+            "boundscheck": True,
+            "wraparound": True,
+            "cdivision": False,
+            "overflowcheck": False,
+        },
+    ),
     package_data={"": ["*.pyx"]},
     include_package_data=True,
     entry_points={
