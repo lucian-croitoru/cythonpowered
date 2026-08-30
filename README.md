@@ -65,13 +65,13 @@ pip install cythonpowered
 | 22 | cythonpowered.textparse.html.find()       | BeautifulSoup().find()                       | Drop-in replacement, raw substring                                         |
 | 23 | cythonpowered.textparse.html.find_all()   | BeautifulSoup().find_all()                   | Drop-in replacement, raw substrings                                        |
 | 24 | cythonpowered.textparse.get_attr()        | BeautifulSoup().find().get()                 | Takes single tag string as input, not a document                           |
-| 25 | cythonpowered.textparse.get_ips()         | re.findall(...) implementation to get IPs    | Drop-in replacement                                                        |
+| 25 | cythonpowered.textparse.get_ips()         | re.findall(...) implementation to get IPs    | Drop-in replacement, ASCII only                                            |
 | 26 | cythonpowered.textparse.get_emails()      | re.findall(...) implementation to get emails | Drop-in replacement, ASCII only                                            |
 | 27 | cythonpowered.textparse.get_mac_addrs()   | re.findall(...) implementation to get MACs   | Drop-in replacement 
 
 
 
-Note: `get_attr()` operates on a single tag string (e.g. the result of `html.find()`), not on a full HTML document. Speedups are vs. BeautifulSoup; comparisons vs. `lxml` are in [BENCHMARKS.md](https://github.com/lucian-croitoru/cythonpowered/blob/main/BENCHMARKS.md). See this file for full benchmark data.
+Note: `get_attr()` operates on a single tag string (e.g. the result of `html.find()`), not on a full HTML document. `find()`/`find_all()` return raw substrings of the input (original tag-name case and attribute order are preserved; tag names are matched case-insensitively) and do not apply deep HTML error recovery (implicit end tags, foster parenting). Speedups are vs. BeautifulSoup; comparisons vs. `lxml` are in [BENCHMARKS.md](https://github.com/lucian-croitoru/cythonpowered/blob/main/BENCHMARKS.md). See this file for full benchmark data.
 
 ## Installation
 
